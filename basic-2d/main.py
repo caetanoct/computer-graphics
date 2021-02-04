@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
         self.setToolTip('This is a 800x800 <b>Viewport</b>')
         drawButton = QPushButton('draw line', self)
         drawButton.clicked.connect(self.draw_line)
-        drawButton.move(0,803)
+        #drawButton.move(0,803)
 
         increaseXwminButton = QPushButton('increase Xwmin', self)
         increaseXwminButton.clicked.connect(self.increaseXwmin)
