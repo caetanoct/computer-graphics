@@ -47,46 +47,72 @@ class MainWindow(QMainWindow):
         # window data structure, real world coordinates
         self.Xwmin = 0
         self.Ywmin = 0
-        self.Xwmax = 800
-        self.Ywmax = 800
+        self.Xwmax = 400
+        self.Ywmax = 400
         # viewport data structure, what is drawn
-        self.Xvmin = 0
+        self.Xvmin = 400
         self.Yvmin = 0
         self.Xvmax = 800
-        self.Yvmax = 800
+        self.Yvmax = 400
         self.cords = [0,0,0,0]
+        self.precords = [0,0,0,0]
+
+    def draw_line_after_update(self):        
+        d1 = self.precords[0]
+        d2 = self.precords[1]
+        d3 = self.precords[2]
+        d4 = self.precords[3]
+        Xvp1 = ((d1 - self.Xwmin) / (self.Xwmax - self.Xwmin)) * (self.Xvmax - self.Xvmin)
+        Yvp1 = (1 - ((d2-self.Ywmin)/(self.Ywmax-self.Ywmin))) * (self.Yvmax - self.Yvmin)
+        Xvp2 = ((d3 - self.Xwmin) / (self.Xwmax - self.Xwmin)) * (self.Xvmax - self.Xvmin)
+        Yvp2 = (1 - ((d4-self.Ywmin)/(self.Ywmax-self.Ywmin))) * (self.Yvmax - self.Yvmin)
+        print("Calculos:")
+        print(Xvp1)
+        print(Yvp1)
+        print(Xvp2)
+        print(Yvp2)        
+        self.cords = [Xvp1,Yvp1,Xvp2,Yvp2]
+        self.update()
 
     def increaseXwmin(self):
         self.Xwmin += 10
         print(self.Xwmin)
+        self.draw_line_after_update()
 
     def decreaseXwmin(self):
         self.Xwmin -= 10
         print(self.Xwmin)
+        self.draw_line_after_update()
 
     def increaseYwmin(self):
         self.Ywmin += 10
         print(self.Ywmin)
+        self.draw_line_after_update()
 
     def decreaseYwmin(self):
         self.Ywmin -= 10
         print(self.Ywmin)
+        self.draw_line_after_update()
 
     def increaseXwmax(self):
         self.Xwmax += 10
         print(self.Xwmax)
+        self.draw_line_after_update()
 
     def decreaseXwmax(self):
         self.Xwmax -= 10
         print(self.Xwmax)
+        self.draw_line_after_update()
 
     def increaseYwmax(self):
         self.Ywmax += 10
         print(self.Ywmax)
+        self.draw_line_after_update()
 
     def decreaseYwmax(self):
         self.Ywmax -= 10
         print(self.Ywmax)
+        self.draw_line_after_update()
     
     def draw_line(self):
         button = self.sender()
@@ -115,8 +141,10 @@ class MainWindow(QMainWindow):
         print(Yvp1)
         print(Xvp2)
         print(Yvp2)
+        self.precords = [d1,d2,d3,d4]
         self.cords = [Xvp1,Yvp1,Xvp2,Yvp2]
         self.update()
+
 
     def paintEvent(self,event):
         QMainWindow.paintEvent(self, event)
