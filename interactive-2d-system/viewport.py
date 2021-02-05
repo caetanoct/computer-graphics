@@ -15,42 +15,45 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMainWindow
 from input_dialog import Dialog
 
+# transforms real world coordinates into viewport coordinates
 def transformXviewport(x_w, Xw_min, Xw_max, Xvp_min, Xvp_max):
     return (((x_w - Xw_min) / (Xw_max - Xw_min)) * (Xvp_max - Xvp_min))
 
+# transforms real world coordinates into viewport coordinates
 def transformYviewport(y_w, Yw_min, Yw_max, Yvp_min, Yvp_max):
     return (1-((y_w-Yw_min)/(Yw_max-Yw_min)))* (Yvp_max - Yvp_min)
-
+# data structure that represents the window
 class Window():    
     def __init__(self, Xw_min, Yw_min, Xw_max, Yw_max):                
         self.Xw_min = Xw_min
         self.Yw_min = Yw_min
         self.Xw_max = Xw_max
         self.Yw_max = Yw_max
-
+# data structure that represents the viewport
 class Viewport_structure():    
     def __init__(self, Xvp_min, Yvp_min, Xvp_max, Yvp_max):                
         self.Xvp_min = Xvp_min
         self.Yvp_min = Yvp_min
         self.Xvp_max = Xvp_max
         self.Yvp_max = Yvp_max
-
+# used to save objects of type point
 class Point():
     def __init__(self,x,y):
         self.x = x
         self.y = y
-
+# used to save objects of type line
 class Line():
     def __init__(self,x1,y1,x2,y2):
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
-
+# used to save objects of type polygon (list of connected points)
 class Polygon():
     def __init__(self,pointslist):
         self.connected_points_list = pointslist
 
+# main Graphical User Interface (GUI)
 class Ui_MainWindow(QMainWindow):
     
     window = Window(0,0,0,0)
@@ -89,19 +92,37 @@ class Ui_MainWindow(QMainWindow):
                 Xvp2 = transformXviewport(xw2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
                 Yvp2 = transformYviewport(yw2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
                 self.drawLine(Xvp1,Yvp1,Xvp2,Yvp2)
+            if type(obj) == Polygon:
+                points = obj.connected_points_list
+                for i in range(len(points)):
+                    # draw line of point[i] with [i+1] mod len(points)        
+                    x1 = points[i].x
+                    y1 = points[i].y
+                    x2 = points[(i+1) % len(points)].x
+                    y2 = points[(i+1) % len(points)].y
+                    #print("x1,y1:",x1,y1)
+                    #print("x2,y2:",x2,y2)
+
+                    Xvp1 = transformXviewport(x1,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                    Yvp1 = transformYviewport(y1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+
+                    Xvp2 = transformXviewport(x2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                    Yvp2 = transformYviewport(y2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)        
+
+                    self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
 
         self.viewPortLabel.update()
 
     def setupUi(self, MainWindow):
     
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(495, 620)        
+        MainWindow.resize(540, 620)        
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setEnabled(True)
         self.centralwidget.setObjectName("centralwidget")
         
         self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 10, 51, 205))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 10, 91, 205))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -142,7 +163,7 @@ class Ui_MainWindow(QMainWindow):
         self.verticalLayout.addWidget(self.rightButton)
         
         self.viewPortLabel = QtWidgets.QLabel(self.centralwidget)
-        self.viewPortLabel.setGeometry(QtCore.QRect(80, 30, 400, 400))
+        self.viewPortLabel.setGeometry(QtCore.QRect(120, 30, 400, 400))
         self.viewPortLabel.setMinimumSize(QtCore.QSize(400, 400))
         self.viewPortLabel.setMaximumSize(QtCore.QSize(400, 400))
         self.viewPortLabel.setAutoFillBackground(True)
@@ -154,11 +175,11 @@ class Ui_MainWindow(QMainWindow):
         self.viewPortLabel.setPixmap(canvas)
 
         self.text_viewport_label = QtWidgets.QLabel(self.centralwidget)
-        self.text_viewport_label.setGeometry(QtCore.QRect(80, 10, 141, 16))
+        self.text_viewport_label.setGeometry(QtCore.QRect(120, 10, 141, 16))
         self.text_viewport_label.setObjectName("text_viewport_label")
         
         self.outputTextEdit = QtWidgets.QTextEdit(self.centralwidget)
-        self.outputTextEdit.setGeometry(QtCore.QRect(10, 440, 471, 130))
+        self.outputTextEdit.setGeometry(QtCore.QRect(10, 440, 511, 130))
         self.outputTextEdit.setReadOnly(True)
         self.outputTextEdit.setObjectName("outputTextEdit")
         
@@ -183,6 +204,31 @@ class Ui_MainWindow(QMainWindow):
         self.outputTextEdit.setTextColor(QtGui.QColor('black'))
         self.outputTextEdit.append("Istructions: Use the Cartesian coordinate system.")
 
+        self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
+        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(10, 230, 91, 160))
+        self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
+        self.secondLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
+        self.secondLayout.setContentsMargins(0, 0, 0, 0)
+        self.secondLayout.setObjectName("secondLayout")
+        self.pxAmountLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
+        self.pxAmountLabel.setObjectName("pxAmountLabel")
+        self.secondLayout.addWidget(self.pxAmountLabel)
+        self.pxAmountSpinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget_2)
+        self.pxAmountSpinBox.setObjectName("pxAmountSpinBox")
+        self.secondLayout.addWidget(self.pxAmountSpinBox)
+        self.penWidthLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
+        self.penWidthLabel.setObjectName("penWidthLabel")
+        self.secondLayout.addWidget(self.penWidthLabel)
+        self.penWidthSpinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget_2)
+        self.penWidthSpinBox.setObjectName("penWidthSpinBox")
+        self.secondLayout.addWidget(self.penWidthSpinBox)
+        self.penColorLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
+        self.penColorLabel.setObjectName("penColorLabel")
+        self.secondLayout.addWidget(self.penColorLabel)
+        self.penColorComboBox = QtWidgets.QComboBox(self.verticalLayoutWidget_2)
+        self.penColorComboBox.setObjectName("penColorComboBox")
+        self.secondLayout.addWidget(self.penColorComboBox)
+
         MainWindow.setCentralWidget(self.centralwidget)
         
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -205,12 +251,17 @@ class Ui_MainWindow(QMainWindow):
         self.actiondraw_line.setObjectName("actiondraw_line")
         self.actiondraw_line.triggered.connect(self.actionDrawLine)
 
+        self.actionDraw_Polygon = QtWidgets.QAction(MainWindow)
+        self.actionDraw_Polygon.setObjectName("actionDraw_Polygon")
+        self.actionDraw_Polygon.triggered.connect(self.actionDrawPolygon)
+
         self.actionclear = QtWidgets.QAction(MainWindow)
         self.actionclear.setObjectName("actionclear")
         self.actionclear.triggered.connect(self.actionClearViewport)
 
         self.menuInsert.addAction(self.actiondraw_point)
         self.menuInsert.addAction(self.actiondraw_line)
+        self.menuInsert.addAction(self.actionDraw_Polygon)
         self.menuInsert.addAction(self.actionclear)
         
         self.menubar.addAction(self.menuInsert.menuAction())
@@ -234,6 +285,10 @@ class Ui_MainWindow(QMainWindow):
         self.actiondraw_point.setText(_translate("MainWindow", "Draw Point"))
         self.actiondraw_line.setText(_translate("MainWindow", "Draw Line"))
         self.actionclear.setText(_translate("MainWindow", "Clear Viewport"))
+        self.pxAmountLabel.setText(_translate("MainWindow", "Px Amount"))
+        self.penWidthLabel.setText(_translate("MainWindow", "Pen Width"))
+        self.penColorLabel.setText(_translate("MainWindow", "Pen Color"))
+        self.actionDraw_Polygon.setText(_translate("MainWindow", "Draw Polygon"))
     
     # Clears the viewport - grey
     def actionClearViewport_nonDestructive(self):        
@@ -376,3 +431,48 @@ class Ui_MainWindow(QMainWindow):
         painter.setPen(pen)
         painter.drawPoint(x1, y1)
         painter.end()
+
+    def actionDrawPolygon(self):
+        self.outputTextEdit.append("Draw Polygon Trigerred, drawing polygon after user input.")
+        button = self.sender()
+        value, okPressed = QInputDialog.getInt(self, "How many points?","amount:", 0, -2147483647, 2147483647, 1)
+        if okPressed:
+            print("Value received = ", value)    
+        amount = value
+
+        points = []
+
+        for x in range(amount):
+            button = self.sender()
+            i, okPressed = QInputDialog.getInt(self, "Enter value of (Integer)","x{}:".format(x+1), 0, -2147483647, 2147483647, 1)
+            if okPressed:
+                print(i)
+            x1 = i
+            button = self.sender()
+            i, okPressed = QInputDialog.getInt(self, "Enter value of (Integer)","y{}:".format(x+1), 0, -2147483647, 2147483647, 1)
+            if okPressed:
+                print(i)
+            y1 = i
+            point = Point(x1,y1)
+            points.append(point)
+
+        for i in range(len(points)):
+            # draw line of point[i] with [i+1] mod len(points)        
+            x1 = points[i].x
+            y1 = points[i].y
+            x2 = points[(i+1) % len(points)].x
+            y2 = points[(i+1) % len(points)].y
+            #print("x1,y1:",x1,y1)
+            #print("x2,y2:",x2,y2)
+
+            Xvp1 = transformXviewport(x1,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+            Yvp1 = transformYviewport(y1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+
+            Xvp2 = transformXviewport(x2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+            Yvp2 = transformYviewport(y2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)        
+
+            self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
+
+        polygon = Polygon(points)
+        self.objects.append(polygon)
+        self.viewPortLabel.update()
