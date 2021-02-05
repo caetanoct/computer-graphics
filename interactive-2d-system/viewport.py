@@ -9,11 +9,12 @@
 #
 # Developed by Caetano Colin Torres
 #
-# MOVE PX VARIABLE, PEN WIDTH/COLOR VARIABLE, objects list.
+# objects list.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMainWindow
 from input_dialog import Dialog
+import random
 
 # transforms real world coordinates into viewport coordinates
 def transformXviewport(x_w, Xw_min, Xw_max, Xvp_min, Xvp_max):
@@ -59,6 +60,12 @@ class Ui_MainWindow(QMainWindow):
     window = Window(0,0,0,0)
     viewport_obj = Viewport_structure(0,0,0,0)
     objects = []
+    
+    pxAmount = 5
+    penWidth = 5
+
+    colors = ['red','blue','yellow','green','magenta']
+    #colors = ['magenta']
 
     def printObjects(self):
         for obj in self.objects:
@@ -94,6 +101,7 @@ class Ui_MainWindow(QMainWindow):
                 self.drawLine(Xvp1,Yvp1,Xvp2,Yvp2)
             if type(obj) == Polygon:
                 points = obj.connected_points_list
+                color = random.choice(self.colors)
                 for i in range(len(points)):
                     # draw line of point[i] with [i+1] mod len(points)        
                     x1 = points[i].x
@@ -109,7 +117,7 @@ class Ui_MainWindow(QMainWindow):
                     Xvp2 = transformXviewport(x2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
                     Yvp2 = transformYviewport(y2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)        
 
-                    self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
+                    self.drawLine_constantColor(Xvp1, Yvp1, Xvp2, Yvp2,color)
 
         self.viewPortLabel.update()
 
@@ -205,7 +213,7 @@ class Ui_MainWindow(QMainWindow):
         self.outputTextEdit.append("Istructions: Use the Cartesian coordinate system.")
 
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(10, 230, 91, 160))
+        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(10, 230, 91, 180))
         self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
         self.secondLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
         self.secondLayout.setContentsMargins(0, 0, 0, 0)
@@ -213,21 +221,33 @@ class Ui_MainWindow(QMainWindow):
         self.pxAmountLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
         self.pxAmountLabel.setObjectName("pxAmountLabel")
         self.secondLayout.addWidget(self.pxAmountLabel)
+
         self.pxAmountSpinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget_2)
         self.pxAmountSpinBox.setObjectName("pxAmountSpinBox")
+        self.pxAmountSpinBox.setValue(5)
+        self.pxAmountSpinBox.valueChanged.connect(self.pxAmountChanged)
         self.secondLayout.addWidget(self.pxAmountSpinBox)
+
         self.penWidthLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
         self.penWidthLabel.setObjectName("penWidthLabel")
         self.secondLayout.addWidget(self.penWidthLabel)
         self.penWidthSpinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget_2)
         self.penWidthSpinBox.setObjectName("penWidthSpinBox")
+        self.penWidthSpinBox.setValue(5)
+        self.penWidthSpinBox.valueChanged.connect(self.penWidthChanged)
         self.secondLayout.addWidget(self.penWidthSpinBox)
-        self.penColorLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
-        self.penColorLabel.setObjectName("penColorLabel")
-        self.secondLayout.addWidget(self.penColorLabel)
-        self.penColorComboBox = QtWidgets.QComboBox(self.verticalLayoutWidget_2)
-        self.penColorComboBox.setObjectName("penColorComboBox")
-        self.secondLayout.addWidget(self.penColorComboBox)
+
+        self.objListLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
+        self.objListLabel.setObjectName("objListLabel")
+        self.secondLayout.addWidget(self.objListLabel)
+        self.objListComboBox = QtWidgets.QComboBox(self.verticalLayoutWidget_2)
+        self.objListComboBox.setObjectName("objListComboBox")        
+        self.secondLayout.addWidget(self.objListComboBox)
+
+        self.drawButton = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
+        self.drawButton.setObjectName("drawButton")
+        self.drawButton.clicked.connect(self.handleDrawButton)
+        self.secondLayout.addWidget(self.drawButton)
 
         MainWindow.setCentralWidget(self.centralwidget)
         
@@ -279,6 +299,7 @@ class Ui_MainWindow(QMainWindow):
         self.upButton.setText(_translate("MainWindow", "up"))
         self.downButton.setText(_translate("MainWindow", "down"))
         self.leftButton.setText(_translate("MainWindow", "left"))
+        self.drawButton.setText(_translate("MainWindow", "draw"))
         self.rightButton.setText(_translate("MainWindow", "right"))
         self.text_viewport_label.setText(_translate("MainWindow", "Viewport - 400x400"))
         self.menuInsert.setTitle(_translate("MainWindow", "Insert"))
@@ -287,7 +308,7 @@ class Ui_MainWindow(QMainWindow):
         self.actionclear.setText(_translate("MainWindow", "Clear Viewport"))
         self.pxAmountLabel.setText(_translate("MainWindow", "Px Amount"))
         self.penWidthLabel.setText(_translate("MainWindow", "Pen Width"))
-        self.penColorLabel.setText(_translate("MainWindow", "Pen Color"))
+        self.objListLabel.setText(_translate("MainWindow", "Object list"))
         self.actionDraw_Polygon.setText(_translate("MainWindow", "Draw Polygon"))
     
     # Clears the viewport - grey
@@ -314,49 +335,49 @@ class Ui_MainWindow(QMainWindow):
 
     # changes window size and redraw objects.
     def zoomin(self):
-        self.outputTextEdit.append("Zooming in 5px.")
-        self.window.Xw_min += 5
-        self.window.Yw_min += 5
-        self.window.Xw_max -= 5
-        self.window.Yw_max -= 5
+        self.outputTextEdit.append("Zooming in {}px.".format(self.pxAmount))
+        self.window.Xw_min += self.pxAmount
+        self.window.Yw_min += self.pxAmount
+        self.window.Xw_max -= self.pxAmount
+        self.window.Yw_max -= self.pxAmount
         #self.printObjects()
         self.drawObjects()
 
     # changes window size and redraw objects.
     def zoomout(self):
-        self.outputTextEdit.append("Zooming out 5px.")
-        self.window.Xw_min -= 5
-        self.window.Yw_min -= 5
-        self.window.Xw_max += 5
-        self.window.Yw_max += 5        
+        self.outputTextEdit.append("Zooming out {}px.".format(self.pxAmount))
+        self.window.Xw_min -= self.pxAmount
+        self.window.Yw_min -= self.pxAmount
+        self.window.Xw_max += self.pxAmount
+        self.window.Yw_max += self.pxAmount   
         self.drawObjects()
 
     # changes window size and redraw objects.
     def moveup(self):
-        self.outputTextEdit.append("Moving up 5px.")        
-        self.window.Yw_min -= 5        
-        self.window.Yw_max -= 5        
+        self.outputTextEdit.append("Moving up {}px.".format(self.pxAmount))        
+        self.window.Yw_min -= self.pxAmount
+        self.window.Yw_max -= self.pxAmount
         self.drawObjects()
 
     # changes window size and redraw objects.
     def movedown(self):
-        self.outputTextEdit.append("Moving down 5px.")        
-        self.window.Yw_min += 5        
-        self.window.Yw_max += 5        
+        self.outputTextEdit.append("Moving down {}px.".format(self.pxAmount))        
+        self.window.Yw_min += self.pxAmount
+        self.window.Yw_max += self.pxAmount
         self.drawObjects()
 
     # changes window size and redraw objects.
     def moveleft(self):
-        self.outputTextEdit.append("Moving left 5px.")        
-        self.window.Xw_min += 5        
-        self.window.Xw_max += 5        
+        self.outputTextEdit.append("Moving left {}px.".format(self.pxAmount))        
+        self.window.Xw_min += self.pxAmount
+        self.window.Xw_max += self.pxAmount
         self.drawObjects()
 
     # changes window size and redraw objects.
     def moveright(self):
-        self.outputTextEdit.append("Moving right 5px.")        
-        self.window.Xw_min -= 5        
-        self.window.Xw_max -= 5        
+        self.outputTextEdit.append("Moving right {}px.".format(self.pxAmount))        
+        self.window.Xw_min -= self.pxAmount
+        self.window.Xw_max -= self.pxAmount
         self.drawObjects()
 
 
@@ -373,12 +394,13 @@ class Ui_MainWindow(QMainWindow):
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
-        pen.setWidth(5)
-        pen.setColor(QtGui.QColor('red'))
+        pen.setWidth(self.penWidth)
+        pen.setColor(QtGui.QColor(random.choice(self.colors)))
         painter.setPen(pen)
         # the display file is x1,y1,x2,y2 - this points represent the object line.
         painter.drawLine(x1, y1, x2,y2)
         painter.end()
+
 
     # transforms user input data to viewport coords and calls drawline funtion   
     def use_dialog_data_line(self, values):
@@ -392,8 +414,8 @@ class Ui_MainWindow(QMainWindow):
         Yvp2 = transformYviewport(int(values['y2']),self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
 
         line = Line(int(values['x1']), int(values['y1']), int(values['x2']), int(values['y2']))
+        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
         self.objects.append(line)
-
         self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
 
     # when action draw point is pressed, get user input, transform it and call drawpoint funtion
@@ -416,6 +438,7 @@ class Ui_MainWindow(QMainWindow):
         Yvp = transformYviewport(y1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
 
         point = Point(x1,y1)
+        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
         self.objects.append(point)
 
         self.drawPoint(Xvp,Yvp)
@@ -426,12 +449,12 @@ class Ui_MainWindow(QMainWindow):
     def drawPoint(self,x1,y1):    
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
-        pen.setWidth(5)
-        pen.setColor(QtGui.QColor('yellow'))
+        pen.setWidth(self.penWidth)
+        pen.setColor(QtGui.QColor(random.choice(self.colors)))
         painter.setPen(pen)
         painter.drawPoint(x1, y1)
         painter.end()
-
+    # get user input (point list) and draw a polygon
     def actionDrawPolygon(self):
         self.outputTextEdit.append("Draw Polygon Trigerred, drawing polygon after user input.")
         button = self.sender()
@@ -439,7 +462,7 @@ class Ui_MainWindow(QMainWindow):
         if okPressed:
             print("Value received = ", value)    
         amount = value
-
+        color = random.choice(self.colors)
         points = []
 
         for x in range(amount):
@@ -471,8 +494,71 @@ class Ui_MainWindow(QMainWindow):
             Xvp2 = transformXviewport(x2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
             Yvp2 = transformYviewport(y2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)        
 
-            self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
+            self.drawLine_constantColor(Xvp1, Yvp1, Xvp2, Yvp2,color)
 
         polygon = Polygon(points)
+        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
         self.objects.append(polygon)
         self.viewPortLabel.update()
+    # changes amount of pixels that will move on the interactive menu
+    def pxAmountChanged(self):        
+        value = self.pxAmountSpinBox.value()
+        print("New pxAmount:", value)
+        self.pxAmount = value
+    # changes value of pen width in class
+    def penWidthChanged(self):        
+        value = self.penWidthSpinBox.value()
+        print("New pen width:", value)
+        self.penWidth = value
+    def handleDrawButton(self):
+        string = self.objListComboBox.currentText()
+        if (len(string) >= 1):
+            index = string[4]
+            self.actionClearViewport_nonDestructive()
+            obj = self.objects[int(index)]
+            if type(obj) == Point:
+                Xwindow = obj.x
+                Ywindow = obj.y                
+                Xvp = transformXviewport(Xwindow,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                Yvp = transformYviewport(Ywindow,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+
+                self.drawPoint(Xvp,Yvp)
+            if type(obj) == Line:
+                xw1,yw1,xw2,yw2 = obj.x1,obj.y1,obj.x2,obj.y2
+                Xvp1 = transformXviewport(xw1,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                Yvp1 = transformYviewport(yw1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+                Xvp2 = transformXviewport(xw2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                Yvp2 = transformYviewport(yw2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+                self.drawLine(Xvp1,Yvp1,Xvp2,Yvp2)
+            if type(obj) == Polygon:
+                points = obj.connected_points_list
+                color = random.choice(self.colors)
+                for i in range(len(points)):
+                    # draw line of point[i] with [i+1] mod len(points)        
+                    x1 = points[i].x
+                    y1 = points[i].y
+                    x2 = points[(i+1) % len(points)].x
+                    y2 = points[(i+1) % len(points)].y
+                    #print("x1,y1:",x1,y1)
+                    #print("x2,y2:",x2,y2)
+
+                    Xvp1 = transformXviewport(x1,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                    Yvp1 = transformYviewport(y1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
+
+                    Xvp2 = transformXviewport(x2,self.window.Xw_min,self.window.Xw_max,self.viewport_obj.Xvp_min,self.viewport_obj.Xvp_max)
+                    Yvp2 = transformYviewport(y2,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)        
+
+                    self.drawLine_constantColor(Xvp1, Yvp1, Xvp2, Yvp2,color)
+
+        self.viewPortLabel.update()
+    
+    # draws line without a random choice of color
+    def drawLine_constantColor(self,x1,y1,x2,y2,color):
+        painter = QtGui.QPainter(self.viewPortLabel.pixmap())
+        pen = QtGui.QPen()
+        pen.setWidth(self.penWidth)
+        pen.setColor(QtGui.QColor(color))
+        painter.setPen(pen)
+        # the display file is x1,y1,x2,y2 - this points represent the object line.
+        painter.drawLine(x1, y1, x2,y2)
+        painter.end()
