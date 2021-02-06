@@ -30,6 +30,8 @@ class Window():
         self.Yw_min = Yw_min
         self.Xw_max = Xw_max
         self.Yw_max = Yw_max
+        #self.Xw_med = (Xw_min+Xw_max)/2
+        #self.Yw_med = (Yw_min+Yw_max)/2
 # data structure that represents the viewport
 class Viewport_structure():    
     def __init__(self, Xvp_min, Yvp_min, Xvp_max, Yvp_max):                
@@ -57,6 +59,7 @@ class Polygon():
 # main Graphical User Interface (GUI)
 class Ui_MainWindow(QMainWindow):
     
+    # initialize window and viewport
     window = Window(0,0,0,0)
     viewport_obj = Viewport_structure(0,0,0,0)
 
@@ -65,17 +68,10 @@ class Ui_MainWindow(QMainWindow):
     # setting default pxamount (used for menu navigation) and pen color/width
     pxAmount = 5
     penWidth = 5
+    # set default drawing color to red
     color = QtGui.QColor('red')
 
-    def printObjects(self):
-        for obj in self.objects:
-            if type(obj) == Point:
-                print("Found a point")
-            if type(obj) == Line:
-                print("Found a line")
-            if type(obj) == Polygon:
-                print("Found a polygon")
-
+    # draws all objects stored in the process and prints the windows dimensions
     def drawObjects(self):        
         self.actionClearViewport_nonDestructive()
         self.outputTextEdit.setTextColor(QtGui.QColor('green'))
@@ -120,7 +116,7 @@ class Ui_MainWindow(QMainWindow):
                     self.drawLine_constantColor(Xvp1, Yvp1, Xvp2, Yvp2,color)
 
         self.viewPortLabel.update()
-
+    # initialize all GUI components
     def setupUi(self, MainWindow):
     
         MainWindow.setObjectName("MainWindow")
@@ -318,7 +314,7 @@ class Ui_MainWindow(QMainWindow):
         self.actionDraw_Polygon.setText(_translate("MainWindow", "Draw Polygon"))
         self.actionselect_color_2.setText(_translate("MainWindow", "Select Pen Color"))
     
-    # Clears the viewport - grey
+    # Clears the viewport (without clearing the list of objects) - light grey
     def actionClearViewport_nonDestructive(self):        
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
@@ -328,7 +324,7 @@ class Ui_MainWindow(QMainWindow):
         painter.drawPoint(200,200)        
         self.viewPortLabel.update()
 
-    # Clears the viewport - grey
+    # Clears the viewport - light grey
     def actionClearViewport(self):
         self.outputTextEdit.append("Clearing Viewport 400x400.")
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
@@ -337,10 +333,12 @@ class Ui_MainWindow(QMainWindow):
         pen.setColor(QtGui.QColor('lightgrey'))
         painter.setPen(pen)
         painter.drawPoint(200,200)
+        for i in range(len(self.objects)):            
+            self.objListComboBox.removeItem(0)
         self.objects = []
         self.viewPortLabel.update()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (we can see less).
     def zoomin(self):
         self.outputTextEdit.append("Zooming in {}px.".format(self.pxAmount))
         self.window.Xw_min += self.pxAmount
@@ -350,7 +348,7 @@ class Ui_MainWindow(QMainWindow):
         #self.printObjects()
         self.drawObjects()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (we can see more).
     def zoomout(self):
         self.outputTextEdit.append("Zooming out {}px.".format(self.pxAmount))
         self.window.Xw_min -= self.pxAmount
@@ -359,28 +357,28 @@ class Ui_MainWindow(QMainWindow):
         self.window.Yw_max += self.pxAmount   
         self.drawObjects()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (the objects will appear to be moving up).
     def moveup(self):
         self.outputTextEdit.append("Moving up {}px.".format(self.pxAmount))        
         self.window.Yw_min -= self.pxAmount
         self.window.Yw_max -= self.pxAmount
         self.drawObjects()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (the objects will appear to be moving down).
     def movedown(self):
         self.outputTextEdit.append("Moving down {}px.".format(self.pxAmount))        
         self.window.Yw_min += self.pxAmount
         self.window.Yw_max += self.pxAmount
         self.drawObjects()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (the objects will appear to be moving to the left).
     def moveleft(self):
         self.outputTextEdit.append("Moving left {}px.".format(self.pxAmount))        
         self.window.Xw_min += self.pxAmount
         self.window.Xw_max += self.pxAmount
         self.drawObjects()
 
-    # changes window size and redraw objects.
+    # changes window size and redraw  all objects (the objects will appear to be moving to the right).
     def moveright(self):
         self.outputTextEdit.append("Moving right {}px.".format(self.pxAmount))        
         self.window.Xw_min -= self.pxAmount
@@ -409,7 +407,7 @@ class Ui_MainWindow(QMainWindow):
         painter.end()
 
 
-    # transforms user input data to viewport coords and calls drawline funtion   
+    # transforms user input data from the dialog (defined in input_dialog.py) to viewport coords and calls drawline funtion   
     def use_dialog_data_line(self, values):
         print(values['x1'], values['y1'], values['x2'], values['y2'])
         self.outputTextEdit.append("Values got from user are: (X1: {} ,Y1: {}) (X2: {} ,Y2: {}).".format(values['x1'], values['y1'], values['x2'], values['y2']))
@@ -425,7 +423,7 @@ class Ui_MainWindow(QMainWindow):
         self.objects.append(line)
         self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
 
-    # when action draw point is pressed, get user input, transform it and call drawpoint funtion
+    # when the action draw point is pressed, get user input, transform it and call drawpoint funtion
     def actionDrawPoint(self):
         self.outputTextEdit.append("Draw Point Trigerred, drawing point after getting values from user.")
         button = self.sender()
@@ -452,7 +450,7 @@ class Ui_MainWindow(QMainWindow):
         self.outputTextEdit.append("Point ({} , {}) was drawn.".format(x1,y1))
         self.viewPortLabel.update()
 
-    # draws a point
+    # draws a point in the viewport
     def drawPoint(self,x1,y1):    
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
@@ -461,7 +459,8 @@ class Ui_MainWindow(QMainWindow):
         painter.setPen(pen)
         painter.drawPoint(x1, y1)
         painter.end()
-    # get user input (point list) and draw a polygon
+
+    # get user input (point list) and draw a polygon in the viewport
     def actionDrawPolygon(self):
         self.outputTextEdit.append("Draw Polygon Trigerred, drawing polygon after user input.")
         button = self.sender()
@@ -469,6 +468,11 @@ class Ui_MainWindow(QMainWindow):
         if okPressed:
             print("Value received = ", value)    
         amount = value
+        if (value <= 0):
+            self.outputTextEdit.setTextColor(QtGui.QColor('red'))
+            self.outputTextEdit.append("Try again, value must be greater than 0.")
+            self.outputTextEdit.setTextColor(QtGui.QColor('black'))
+            return        
         color = self.color
         points = []
 
@@ -512,13 +516,14 @@ class Ui_MainWindow(QMainWindow):
         value = self.pxAmountSpinBox.value()
         print("New pxAmount:", value)
         self.pxAmount = value
-        self.outputTextEdit.append("Px amount was set to {} (Default = 5)".format(self.pxAmount))
+        self.outputTextEdit.append("Px amount was set to {} (Default = 5)".format(self.pxAmount))        
     # changes value of pen width in class
     def penWidthChanged(self):        
         value = self.penWidthSpinBox.value()
         print("New pen width:", value)
         self.penWidth = value
         self.outputTextEdit.append("Pen width was set to {} (Default = 5)".format(self.penWidth))
+    # when the draw button is pressed, draw the object that is selected in the object list
     def handleDrawButton(self):
         string = self.objListComboBox.currentText()
         if (len(string) >= 1):
@@ -561,7 +566,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.viewPortLabel.update()
     
-    # draws line without a random choice of color
+    # draws line without a random choice of color (the color is passed via parameter)
     def drawLine_constantColor(self,x1,y1,x2,y2,color):
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
@@ -575,4 +580,9 @@ class Ui_MainWindow(QMainWindow):
     # handles select color action
     def actionSelectColor(self):
         color = QColorDialog.getColor()
+        self.outputTextEdit.setTextColor(color)
+        self.outputTextEdit.setFontItalic(True)
+        self.outputTextEdit.append("New pen color was set.")
+        self.outputTextEdit.setFontItalic(False)
+        self.outputTextEdit.setTextColor(QtGui.QColor('black'))
         self.color = color
