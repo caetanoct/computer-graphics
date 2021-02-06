@@ -12,7 +12,7 @@
 # objects list.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QInputDialog, QMainWindow
+from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog
 from input_dialog import Dialog
 import random
 
@@ -59,13 +59,13 @@ class Ui_MainWindow(QMainWindow):
     
     window = Window(0,0,0,0)
     viewport_obj = Viewport_structure(0,0,0,0)
+
+    # list where our objects will be stored
     objects = []
-    
+    # setting default pxamount (used for menu navigation) and pen color/width
     pxAmount = 5
     penWidth = 5
-
-    colors = ['red','blue','yellow','green','magenta']
-    #colors = ['magenta']
+    color = QtGui.QColor('red')
 
     def printObjects(self):
         for obj in self.objects:
@@ -101,7 +101,7 @@ class Ui_MainWindow(QMainWindow):
                 self.drawLine(Xvp1,Yvp1,Xvp2,Yvp2)
             if type(obj) == Polygon:
                 points = obj.connected_points_list
-                color = random.choice(self.colors)
+                color = self.color
                 for i in range(len(points)):
                     # draw line of point[i] with [i+1] mod len(points)        
                     x1 = points[i].x
@@ -179,7 +179,7 @@ class Ui_MainWindow(QMainWindow):
         self.viewPortLabel.setObjectName("viewPortLabel")
         
         canvas = QtGui.QPixmap(400, 400)
-        canvas.fill(QtGui.QColor('grey'))
+        canvas.fill(QtGui.QColor('lightgrey'))
         self.viewPortLabel.setPixmap(canvas)
 
         self.text_viewport_label = QtWidgets.QLabel(self.centralwidget)
@@ -262,7 +262,7 @@ class Ui_MainWindow(QMainWindow):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-        
+        # actions
         self.actiondraw_point = QtWidgets.QAction(MainWindow)
         self.actiondraw_point.setObjectName("actiondraw_point")
         self.actiondraw_point.triggered.connect(self.actionDrawPoint)
@@ -279,11 +279,17 @@ class Ui_MainWindow(QMainWindow):
         self.actionclear.setObjectName("actionclear")
         self.actionclear.triggered.connect(self.actionClearViewport)
 
+        self.actionselect_color_2 = QtWidgets.QAction(MainWindow)
+        self.actionselect_color_2.setObjectName("actionselect_color_2")
+        self.actionselect_color_2.triggered.connect(self.actionSelectColor)
+        # end actions
         self.menuInsert.addAction(self.actiondraw_point)
         self.menuInsert.addAction(self.actiondraw_line)
         self.menuInsert.addAction(self.actionDraw_Polygon)
         self.menuInsert.addAction(self.actionclear)
-        
+        self.menuInsert.addSeparator()
+        self.menuInsert.addAction(self.actionselect_color_2)
+
         self.menubar.addAction(self.menuInsert.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -310,13 +316,14 @@ class Ui_MainWindow(QMainWindow):
         self.penWidthLabel.setText(_translate("MainWindow", "Pen Width"))
         self.objListLabel.setText(_translate("MainWindow", "Object list"))
         self.actionDraw_Polygon.setText(_translate("MainWindow", "Draw Polygon"))
+        self.actionselect_color_2.setText(_translate("MainWindow", "Select Pen Color"))
     
     # Clears the viewport - grey
     def actionClearViewport_nonDestructive(self):        
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(1600)
-        pen.setColor(QtGui.QColor('grey'))
+        pen.setColor(QtGui.QColor('lightgrey'))
         painter.setPen(pen)
         painter.drawPoint(200,200)        
         self.viewPortLabel.update()
@@ -327,7 +334,7 @@ class Ui_MainWindow(QMainWindow):
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(1600)
-        pen.setColor(QtGui.QColor('grey'))
+        pen.setColor(QtGui.QColor('lightgrey'))
         painter.setPen(pen)
         painter.drawPoint(200,200)
         self.objects = []
@@ -395,7 +402,7 @@ class Ui_MainWindow(QMainWindow):
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(self.penWidth)
-        pen.setColor(QtGui.QColor(random.choice(self.colors)))
+        pen.setColor(QtGui.QColor(self.color))
         painter.setPen(pen)
         # the display file is x1,y1,x2,y2 - this points represent the object line.
         painter.drawLine(x1, y1, x2,y2)
@@ -414,7 +421,7 @@ class Ui_MainWindow(QMainWindow):
         Yvp2 = transformYviewport(int(values['y2']),self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
 
         line = Line(int(values['x1']), int(values['y1']), int(values['x2']), int(values['y2']))
-        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
+        self.objListComboBox.addItem("{}-Line".format(len(self.objects)))
         self.objects.append(line)
         self.drawLine(Xvp1, Yvp1, Xvp2, Yvp2)
 
@@ -422,12 +429,12 @@ class Ui_MainWindow(QMainWindow):
     def actionDrawPoint(self):
         self.outputTextEdit.append("Draw Point Trigerred, drawing point after getting values from user.")
         button = self.sender()
-        i, okPressed = QInputDialog.getInt(self, "Get integer","x:", 0, -2147483647, 2147483647, 1)
+        i, okPressed = QInputDialog.getInt(self, "First value (Integer)","x:", 0, -2147483647, 2147483647, 1)
         if okPressed:
             print(i)
         x1 = i
         button = self.sender()
-        i, okPressed = QInputDialog.getInt(self, "Get integer","y:", 0, -2147483647, 2147483647, 1)
+        i, okPressed = QInputDialog.getInt(self, "Second value (Integer)","y:", 0, -2147483647, 2147483647, 1)
         if okPressed:
             print(i)
         y1 = i
@@ -438,7 +445,7 @@ class Ui_MainWindow(QMainWindow):
         Yvp = transformYviewport(y1,self.window.Yw_min,self.window.Yw_max,self.viewport_obj.Yvp_min,self.viewport_obj.Yvp_max)
 
         point = Point(x1,y1)
-        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
+        self.objListComboBox.addItem("{}-Point".format(len(self.objects)))
         self.objects.append(point)
 
         self.drawPoint(Xvp,Yvp)
@@ -450,7 +457,7 @@ class Ui_MainWindow(QMainWindow):
         painter = QtGui.QPainter(self.viewPortLabel.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(self.penWidth)
-        pen.setColor(QtGui.QColor(random.choice(self.colors)))
+        pen.setColor(self.color)
         painter.setPen(pen)
         painter.drawPoint(x1, y1)
         painter.end()
@@ -462,7 +469,7 @@ class Ui_MainWindow(QMainWindow):
         if okPressed:
             print("Value received = ", value)    
         amount = value
-        color = random.choice(self.colors)
+        color = self.color
         points = []
 
         for x in range(amount):
@@ -497,7 +504,7 @@ class Ui_MainWindow(QMainWindow):
             self.drawLine_constantColor(Xvp1, Yvp1, Xvp2, Yvp2,color)
 
         polygon = Polygon(points)
-        self.objListComboBox.addItem("Obj({})".format(len(self.objects)))
+        self.objListComboBox.addItem("{}-Polygon".format(len(self.objects)))
         self.objects.append(polygon)
         self.viewPortLabel.update()
     # changes amount of pixels that will move on the interactive menu
@@ -505,15 +512,17 @@ class Ui_MainWindow(QMainWindow):
         value = self.pxAmountSpinBox.value()
         print("New pxAmount:", value)
         self.pxAmount = value
+        self.outputTextEdit.append("Px amount was set to {} (Default = 5)".format(self.pxAmount))
     # changes value of pen width in class
     def penWidthChanged(self):        
         value = self.penWidthSpinBox.value()
         print("New pen width:", value)
         self.penWidth = value
+        self.outputTextEdit.append("Pen width was set to {} (Default = 5)".format(self.penWidth))
     def handleDrawButton(self):
         string = self.objListComboBox.currentText()
         if (len(string) >= 1):
-            index = string[4]
+            index = string[0]
             self.actionClearViewport_nonDestructive()
             obj = self.objects[int(index)]
             if type(obj) == Point:
@@ -532,7 +541,7 @@ class Ui_MainWindow(QMainWindow):
                 self.drawLine(Xvp1,Yvp1,Xvp2,Yvp2)
             if type(obj) == Polygon:
                 points = obj.connected_points_list
-                color = random.choice(self.colors)
+                color = self.color
                 for i in range(len(points)):
                     # draw line of point[i] with [i+1] mod len(points)        
                     x1 = points[i].x
@@ -562,3 +571,8 @@ class Ui_MainWindow(QMainWindow):
         # the display file is x1,y1,x2,y2 - this points represent the object line.
         painter.drawLine(x1, y1, x2,y2)
         painter.end()
+
+    # handles select color action
+    def actionSelectColor(self):
+        color = QColorDialog.getColor()
+        self.color = color
