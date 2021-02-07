@@ -176,7 +176,7 @@ class Ui_MainWindow(QMainWindow):
         
         canvas = QtGui.QPixmap(400, 400)
         canvas.fill(QtGui.QColor('lightgrey'))
-        self.viewPortLabel.setPixmap(canvas)
+        self.viewPortLabel.setPixmap(canvas)        
 
         self.text_viewport_label = QtWidgets.QLabel(self.centralwidget)
         self.text_viewport_label.setGeometry(QtCore.QRect(120, 10, 141, 16))
@@ -216,12 +216,14 @@ class Ui_MainWindow(QMainWindow):
         self.secondLayout.setObjectName("secondLayout")
         self.pxAmountLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
         self.pxAmountLabel.setObjectName("pxAmountLabel")
+        self.pxAmountLabel.setToolTip('This is the <b>number of pixels</b> that the object will move.')
         self.secondLayout.addWidget(self.pxAmountLabel)
 
         self.pxAmountSpinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget_2)
         self.pxAmountSpinBox.setObjectName("pxAmountSpinBox")
         self.pxAmountSpinBox.setValue(5)
         self.pxAmountSpinBox.valueChanged.connect(self.pxAmountChanged)
+        self.pxAmountSpinBox.setToolTip('This is the <b>number of pixels</b> that the object will move.')
         self.secondLayout.addWidget(self.pxAmountSpinBox)
 
         self.penWidthLabel = QtWidgets.QLabel(self.verticalLayoutWidget_2)
@@ -296,8 +298,8 @@ class Ui_MainWindow(QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "INE5420 - Computer Graphics - Basic 2D System"))
         self.interactivemenuTextLabel.setText(_translate("MainWindow", "Menu"))
-        self.zoomInButton.setText(_translate("MainWindow", "+"))
-        self.zoomOutButton.setText(_translate("MainWindow", "-"))
+        self.zoomInButton.setText(_translate("MainWindow", "Zoom (+)"))
+        self.zoomOutButton.setText(_translate("MainWindow", "Zoom (-)"))
         self.upButton.setText(_translate("MainWindow", "up"))
         self.downButton.setText(_translate("MainWindow", "down"))
         self.leftButton.setText(_translate("MainWindow", "left"))
