@@ -57,15 +57,10 @@ class Ui_MainWindow(QMainWindow):
     # draws all objects stored in the process and prints the windows dimensions
     def draw_objects(self):        
         self.action_clear_viewport_non_destructive()
-        self.output_text_edit.setTextColor(QtGui.QColor('green'))
-        self.output_text_edit.setFontItalic(True)
-        self.output_text_edit.append("New Window dimensions:")
-        self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.window.x_min, self.window.y_min, self.window.x_max, self.window.y_max))        
-        self.output_text_edit.setTextColor(QtGui.QColor('black'))
+        self.log("New Window dimensions:", 'green', True)
+        self.log("Window: {}".format(self.window))
         for obj in self.objects:
             self.draw_obj(obj)
-
         self.view_port_label.update()
     # initialize all GUI components
     def setup_ui(self, MainWindow):
@@ -89,32 +84,32 @@ class Ui_MainWindow(QMainWindow):
         
         self.zoom_in_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.zoom_in_button.setObjectName("zoomInButton")
-        self.zoom_in_button.clicked.connect(self.zoomin)
+        self.zoom_in_button.clicked.connect(lambda: self.zoom(self.px_amount))
         self.vertical_layout.addWidget(self.zoom_in_button)
         
         self.zoom_out_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.zoom_out_button.setObjectName("zoomOutButton")
-        self.zoom_out_button.clicked.connect(self.zoomout)
+        self.zoom_out_button.clicked.connect(lambda: self.zoom(-self.px_amount))
         self.vertical_layout.addWidget(self.zoom_out_button)
         
         self.up_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.up_button.setObjectName("upButton")
-        self.up_button.clicked.connect(self.moveup)
+        self.up_button.clicked.connect(lambda: self.move(Point(0, self.px_amount)))
         self.vertical_layout.addWidget(self.up_button)
         
         self.down_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.down_button.setObjectName("downButton")
-        self.down_button.clicked.connect(self.movedown)
+        self.down_button.clicked.connect(lambda: self.move(Point(0, -self.px_amount)))
         self.vertical_layout.addWidget(self.down_button)
         
         self.left_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.left_button.setObjectName("leftButton")
-        self.left_button.clicked.connect(self.moveleft)
+        self.left_button.clicked.connect(lambda: self.move(Point(-self.px_amount, 0)))
         self.vertical_layout.addWidget(self.left_button)
         
         self.right_button = QtWidgets.QPushButton(self.vertical_layout_widget)
         self.right_button.setObjectName("rightButton")
-        self.right_button.clicked.connect(self.moveright)
+        self.right_button.clicked.connect(lambda: self.move(Point(self.px_amount, 0)))
         self.vertical_layout.addWidget(self.right_button)
         
         self.view_port_label = QtWidgets.QLabel(self.centralwidget)
@@ -144,20 +139,11 @@ class Ui_MainWindow(QMainWindow):
         #print(window.Y_min)
         #print(window.X_max)
         #print(window.Y_max)
-        self.output_text_edit.setTextColor(QtGui.QColor('green'))
-        self.output_text_edit.setFontItalic(True)
-        self.output_text_edit.append("Window dimensions:")
-        self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.window.x_min, self.window.y_min, self.window.x_max, self.window.y_max))
+        self.log("Window dimensions:\n{}".format(self.window), 'green', True)
 
-        self.output_text_edit.setTextColor(QtGui.QColor('red'))
-        self.output_text_edit.setFontItalic(True)
-        self.output_text_edit.append("Viewport dimensions (Fixed):")
-        self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.viewport.x_min, self.viewport.y_min, self.viewport.x_max, self.viewport.y_max))
+        self.log("Viewport dimensions:\n{}".format(self.viewport), 'red', True)
         
-        self.output_text_edit.setTextColor(QtGui.QColor('black'))
-        self.output_text_edit.append("Istructions: Use the Cartesian coordinate system.")
+        self.log("Instructions: Use the Cartesian coordinate system.")
 
         self.vertical_layout_widget_2 = QtWidgets.QWidget(self.centralwidget)
         self.vertical_layout_widget_2.setGeometry(QtCore.QRect(10, 230, 91, 180))
@@ -279,7 +265,7 @@ class Ui_MainWindow(QMainWindow):
 
     # Clears the viewport - light grey
     def action_clear_viewport(self):
-        self.output_text_edit.append("Clearing Viewport 400x400.")
+        self.log("Clearing Viewport 400x400.")
         painter = QtGui.QPainter(self.view_port_label.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(1600)
@@ -292,56 +278,26 @@ class Ui_MainWindow(QMainWindow):
         self.view_port_label.update()
 
     # changes window size and redraw  all objects (we can see less).
-    def zoomin(self):
-        self.output_text_edit.append("Zooming in {}px.".format(self.px_amount))
-        self.window.x_min += self.px_amount
-        self.window.y_min += self.px_amount
-        self.window.x_max -= self.px_amount
-        self.window.y_max -= self.px_amount
-        #self.print_objects()
-        self.draw_objects()
-
-    # changes window size and redraw  all objects (we can see more).
-    def zoomout(self):
-        self.output_text_edit.append("Zooming out {}px.".format(self.px_amount))
-        self.window.x_min -= self.px_amount
-        self.window.y_min -= self.px_amount
-        self.window.x_max += self.px_amount
-        self.window.y_max += self.px_amount   
+    def zoom(self, factor):
+        self.log("Zooming in {}px.".format(factor))
+        self.window.x_min += factor
+        self.window.y_min += factor
+        self.window.x_max -= factor
+        self.window.y_max -= factor
         self.draw_objects()
 
     # changes window size and redraw  all objects (the objects will appear to be moving up).
-    def moveup(self):
-        self.output_text_edit.append("Moving up {}px.".format(self.px_amount))        
-        self.window.y_min -= self.px_amount
-        self.window.y_max -= self.px_amount
+    def move(self, to: Point):
+        self.log("Moving {} px".format(to))
+        self.window.x_min += to.x
+        self.window.x_max += to.x
+        self.window.y_min += to.y
+        self.window.y_max += to.y
         self.draw_objects()
-
-    # changes window size and redraw  all objects (the objects will appear to be moving down).
-    def movedown(self):
-        self.output_text_edit.append("Moving down {}px.".format(self.px_amount))        
-        self.window.y_min += self.px_amount
-        self.window.y_max += self.px_amount
-        self.draw_objects()
-
-    # changes window size and redraw  all objects (the objects will appear to be moving to the left).
-    def moveleft(self):
-        self.output_text_edit.append("Moving left {}px.".format(self.px_amount))        
-        self.window.x_min += self.px_amount
-        self.window.x_max += self.px_amount
-        self.draw_objects()
-
-    # changes window size and redraw  all objects (the objects will appear to be moving to the right).
-    def moveright(self):
-        self.output_text_edit.append("Moving right {}px.".format(self.px_amount))        
-        self.window.x_min -= self.px_amount
-        self.window.x_max -= self.px_amount
-        self.draw_objects()
-
 
     # when draw line is pressed call draw line function in use dialog data funcion (after receiving dialog input)
     def action_draw_line(self):
-        self.output_text_edit.append("Draw Line Trigerred, drawing line after user input.")
+        self.log("Draw Line Trigerred, drawing line after user input.")
         dg = Dialog()
         dg.accepted.connect(self.use_dialog_data_line)
         dg.exec_()
@@ -362,37 +318,26 @@ class Ui_MainWindow(QMainWindow):
 
     # transforms user input data from the dialog (defined in input_dialog.py) to viewport coords and calls drawline funtion   
     def use_dialog_data_line(self, values):
-        print(values['x1'], values['y1'], values['x2'], values['y2'])
-        self.output_text_edit.append("Values got from user are: (X1: {} ,Y1: {}) (X2: {} ,Y2: {}).".format(values['x1'], values['y1'], values['x2'], values['y2']))
-        
         line = Line(Point(int(values['x1']), int(values['y1'])), Point(int(values['x2']), int(values['y2'])))
+        self.log("Values got from user are: {}.".format(line))
         self.obj_list_combo_box.addItem("{}-Line".format(len(self.objects)))
         self.objects.append(line)
         self.draw_obj(line)
 
     # when the action draw point is pressed, get user input, transform it and call drawpoint funtion
     def action_draw_point(self):
-        self.output_text_edit.append("Draw Point Trigerred, drawing point after getting values from user.")
+        self.log("Draw Point Trigerred, drawing point after getting values from user.")
         button = self.sender()
-        i, okPressed = QInputDialog.getInt(self, "First value (Integer)","x:", 0, -2147483647, 2147483647, 1)
-        if okPressed:
-            print(i)
-        x1 = i
+        x1, _ = QInputDialog.getInt(self, "First value (Integer)","x:", 0, -2147483647, 2147483647, 1)
         button = self.sender()
-        i, okPressed = QInputDialog.getInt(self, "Second value (Integer)","y:", 0, -2147483647, 2147483647, 1)
-        if okPressed:
-            print(i)
-        y1 = i
-        # the display file of a point is x1,y1 - they represent the point
-        #print("x1:", x1)
-        #print(self.window.x_min,self.window.x_max,self.viewport.x_min,self.viewport.x_max)
+        y1, _ = QInputDialog.getInt(self, "Second value (Integer)","y:", 0, -2147483647, 2147483647, 1)
 
         point = Point(x1,y1)
         self.obj_list_combo_box.addItem("{}-Point".format(len(self.objects)))
         self.objects.append(point)
 
         self.draw_obj(point)
-        self.output_text_edit.append("Point ({} , {}) was drawn.".format(x1,y1))
+        self.log("{} was drawn".format(point))
         self.view_port_label.update()
 
     # draws a point in the viewport
@@ -401,33 +346,21 @@ class Ui_MainWindow(QMainWindow):
 
     # get user input (point list) and draw a polygon in the viewport
     def action_draw_polygon(self):
-        self.output_text_edit.append("Draw Polygon Trigerred, drawing polygon after user input.")
+        self.log("Draw Polygon Trigerred, drawing polygon after user input.")
         button = self.sender()
-        value, okPressed = QInputDialog.getInt(self, "How many points?","amount:", 0, -2147483647, 2147483647, 1)
-        if okPressed:
-            print("Value received = ", value)    
-        amount = value
+        value, _ = QInputDialog.getInt(self, "How many points?","amount:", 0, -2147483647, 2147483647, 1)
         if (value <= 0):
-            self.output_text_edit.setTextColor(QtGui.QColor('red'))
-            self.output_text_edit.append("Try again, value must be greater than 0.")
-            self.output_text_edit.setTextColor(QtGui.QColor('black'))
-            return        
+            self.log("Try again, value must be greater than 0.", "red")
+            return
         color = self.color
         points = []
 
-        for x in range(amount):
+        for x in range(value):
             button = self.sender()
-            i, okPressed = QInputDialog.getInt(self, "Enter value of (Integer)","x{}:".format(x+1), 0, -2147483647, 2147483647, 1)
-            if okPressed:
-                print(i)
-            x1 = i
+            x1, _ = QInputDialog.getInt(self, "Enter value of (Integer)","x{}:".format(x+1), 0, -2147483647, 2147483647, 1)
             button = self.sender()
-            i, okPressed = QInputDialog.getInt(self, "Enter value of (Integer)","y{}:".format(x+1), 0, -2147483647, 2147483647, 1)
-            if okPressed:
-                print(i)
-            y1 = i
-            point = Point(x1,y1)
-            points.append(point)
+            y1, _ = QInputDialog.getInt(self, "Enter value of (Integer)","y{}:".format(x+1), 0, -2147483647, 2147483647, 1)
+            points.append(Point(x1,y1))
 
         polygon = Polygon(points)
         self.obj_list_combo_box.addItem("{}-Polygon".format(len(self.objects)))
@@ -439,13 +372,13 @@ class Ui_MainWindow(QMainWindow):
         value = self.px_amount_spin_box.value()
         print("New pxAmount:", value)
         self.px_amount = value
-        self.output_text_edit.append("Px amount was set to {} (Default = 5)".format(self.px_amount))        
+        self.log("Px amount was set to {} (Default = 5)".format(self.px_amount))        
     # changes value of pen width in class
     def pen_width_changed(self):        
         value = self.pen_width_spin_box.value()
         print("New pen width:", value)
         self.pen_width = value
-        self.output_text_edit.append("Pen width was set to {} (Default = 5)".format(self.pen_width))
+        self.log("Pen width was set to {} (Default = 5)".format(self.pen_width))
     # when the draw button is pressed, draw the object that is selected in the object list
     def handle_draw_button(self):
         string = self.obj_list_combo_box.currentText()
@@ -470,11 +403,7 @@ class Ui_MainWindow(QMainWindow):
     # handles select color action
     def action_select_color(self):
         color = QColorDialog.getColor()
-        self.output_text_edit.setTextColor(color)
-        self.output_text_edit.setFontItalic(True)
-        self.output_text_edit.append("New pen color was set.")
-        self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.setTextColor(QtGui.QColor('black'))
+        self.log("New pen color was set.", color, True)
         self.color = color
     
     def draw_obj(self, obj):
@@ -497,3 +426,10 @@ class Ui_MainWindow(QMainWindow):
                 vp_p2 = world_to_viewport(p2, self.window, self.viewport)
 
                 self.draw_line_constant_color(vp_p1, vp_p2 ,color)
+    
+    def log(self, text, color='black', italic=False):
+        self.output_text_edit.setTextColor(QtGui.QColor(color))
+        self.output_text_edit.setFontItalic(italic)
+        self.output_text_edit.append(text)
+        self.output_text_edit.setFontItalic(False)
+        self.output_text_edit.setTextColor(QtGui.QColor('black'))
