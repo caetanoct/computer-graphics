@@ -13,44 +13,27 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog
-from input_dialog import Dialog
 import random
+from engine2d.ui.input_dialog import Dialog
+from engine2d.world.geometry import Box, Point, Line
+from engine2d.world.window import Window
 
-# transforms real world coordinates into viewport coordinates
-def transform_xviewport(x_w, Xw_min, Xw_max, Xvp_min, Xvp_max):
-    return (((x_w - Xw_min) / (Xw_max - Xw_min)) * (Xvp_max - Xvp_min))
-
-# transforms real world coordinates into viewport coordinates
-def transform_yviewport(y_w, Yw_min, Yw_max, Yvp_min, Yvp_max):
-    return (1-((y_w-Yw_min)/(Yw_max-Yw_min)))* (Yvp_max - Yvp_min)
-# data structure that represents the window
-class Window():    
-    def __init__(self, Xw_min, Yw_min, Xw_max, Yw_max):                
-        self.xw_min = Xw_min
-        self.yw_min = Yw_min
-        self.xw_max = Xw_max
-        self.yw_max = Yw_max
-        #self.xw_med = (Xw_min+Xw_max)/2
-        #self.yw_med = (Yw_min+Yw_max)/2
 # data structure that represents the viewport
-class Viewport_structure():    
-    def __init__(self, Xvp_min, Yvp_min, Xvp_max, Yvp_max):                
-        self.xvp_min = Xvp_min
-        self.yvp_min = Yvp_min
-        self.xvp_max = Xvp_max
-        self.yvp_max = Yvp_max
-# used to save objects of type point
-class Point():
-    def __init__(self,x,y):
-        self.x = x
-        self.y = y
-# used to save objects of type line
-class Line():
-    def __init__(self,x1,y1,x2,y2):
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
+class Viewport(Box):
+    pass
+
+# transforms real world coordinates into viewport coordinates
+def world_to_viewport(point: Point, window: Window, viewport: Viewport) -> Point:
+    def transform_x(x_w, Xw_min, Xw_max, Xvp_min, Xvp_max):
+        return (((x_w - Xw_min) / (Xw_max - Xw_min)) * (Xvp_max - Xvp_min))
+    def transform_y(y_w, Yw_min, Yw_max, Yvp_min, Yvp_max):
+        return (1-((y_w-Yw_min)/(Yw_max-Yw_min)))* (Yvp_max - Yvp_min)
+    
+    return Point(
+        x=transform_x(point.x, window.x_min, window.x_max, viewport.x_min, viewport.x_max),
+        y=transform_y(point.y, window.y_min, window.y_max, viewport.y_min, viewport.y_max)
+    )
+
 # used to save objects of type polygon (list of connected points)
 class Polygon():
     def __init__(self,pointslist):
@@ -61,7 +44,7 @@ class Ui_MainWindow(QMainWindow):
     
     # initialize window and viewport
     window = Window(0,0,0,0)
-    viewport_obj = Viewport_structure(0,0,0,0)
+    viewport_obj = Viewport(0,0,0,0)
 
     # list where our objects will be stored
     objects = []
@@ -78,42 +61,10 @@ class Ui_MainWindow(QMainWindow):
         self.output_text_edit.setFontItalic(True)
         self.output_text_edit.append("New Window dimensions:")
         self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(Xw_min, Yw_min): ({}, {})\n(Xw_max, Yw_max): ({}, {})".format(self.window.xw_min, self.window.yw_min, self.window.xw_max, self.window.yw_max))        
+        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.window.x_min, self.window.y_min, self.window.x_max, self.window.y_max))        
         self.output_text_edit.setTextColor(QtGui.QColor('black'))
         for obj in self.objects:
-            if type(obj) == Point:
-                Xwindow = obj.x
-                Ywindow = obj.y                
-                Xvp = transform_xviewport(Xwindow,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp = transform_yviewport(Ywindow,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-                self.draw_point(Xvp,Yvp)
-            if type(obj) == Line:
-                xw1,yw1,xw2,yw2 = obj.x1,obj.y1,obj.x2,obj.y2
-                Xvp1 = transform_xviewport(xw1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp1 = transform_yviewport(yw1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-                Xvp2 = transform_xviewport(xw2,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp2 = transform_yviewport(yw2,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-                self.draw_line(Xvp1,Yvp1,Xvp2,Yvp2)
-            if type(obj) == Polygon:
-                points = obj.connected_points_list
-                color = self.color
-                for i in range(len(points)):
-                    # draw line of point[i] with [i+1] mod len(points)        
-                    x1 = points[i].x
-                    y1 = points[i].y
-                    x2 = points[(i+1) % len(points)].x
-                    y2 = points[(i+1) % len(points)].y
-                    #print("x1,y1:",x1,y1)
-                    #print("x2,y2:",x2,y2)
-
-                    Xvp1 = transform_xviewport(x1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                    Yvp1 = transform_yviewport(y1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-                    Xvp2 = transform_xviewport(x2,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                    Yvp2 = transform_yviewport(y2,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)        
-
-                    self.draw_line_constant_color(Xvp1, Yvp1, Xvp2, Yvp2,color)
+            self.draw_obj(obj)
 
         self.view_port_label.update()
     # initialize all GUI components
@@ -187,23 +138,23 @@ class Ui_MainWindow(QMainWindow):
         self.output_text_edit.setReadOnly(True)
         self.output_text_edit.setObjectName("outputTextEdit")
         
-        self.viewport_obj = Viewport_structure(0,0,400,400)
+        self.viewport = Viewport(0,0,400,400)
         self.window = Window(0,0,400,400)
-        #print(window.Xw_min)
-        #print(window.Yw_min)
-        #print(window.Xw_max)
-        #print(window.Yw_max)
+        #print(window.X_min)
+        #print(window.Y_min)
+        #print(window.X_max)
+        #print(window.Y_max)
         self.output_text_edit.setTextColor(QtGui.QColor('green'))
         self.output_text_edit.setFontItalic(True)
         self.output_text_edit.append("Window dimensions:")
         self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(Xw_min, Yw_min): ({}, {})\n(Xw_max, Yw_max): ({}, {})".format(self.window.xw_min, self.window.yw_min, self.window.xw_max, self.window.yw_max))
+        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.window.x_min, self.window.y_min, self.window.x_max, self.window.y_max))
 
         self.output_text_edit.setTextColor(QtGui.QColor('red'))
         self.output_text_edit.setFontItalic(True)
         self.output_text_edit.append("Viewport dimensions (Fixed):")
         self.output_text_edit.setFontItalic(False)
-        self.output_text_edit.append("(Xvp_min, Yvp_min): ({}, {})\n(Xvp_max, Yvp_max): ({}, {})".format(self.viewport_obj.xvp_min, self.viewport_obj.yvp_min, self.viewport_obj.xvp_max, self.viewport_obj.yvp_max))
+        self.output_text_edit.append("(X_min, Y_min): ({}, {})\n(X_max, Y_max): ({}, {})".format(self.viewport.x_min, self.viewport.y_min, self.viewport.x_max, self.viewport.y_max))
         
         self.output_text_edit.setTextColor(QtGui.QColor('black'))
         self.output_text_edit.append("Istructions: Use the Cartesian coordinate system.")
@@ -343,48 +294,48 @@ class Ui_MainWindow(QMainWindow):
     # changes window size and redraw  all objects (we can see less).
     def zoomin(self):
         self.output_text_edit.append("Zooming in {}px.".format(self.px_amount))
-        self.window.xw_min += self.px_amount
-        self.window.yw_min += self.px_amount
-        self.window.xw_max -= self.px_amount
-        self.window.yw_max -= self.px_amount
+        self.window.x_min += self.px_amount
+        self.window.y_min += self.px_amount
+        self.window.x_max -= self.px_amount
+        self.window.y_max -= self.px_amount
         #self.print_objects()
         self.draw_objects()
 
     # changes window size and redraw  all objects (we can see more).
     def zoomout(self):
         self.output_text_edit.append("Zooming out {}px.".format(self.px_amount))
-        self.window.xw_min -= self.px_amount
-        self.window.yw_min -= self.px_amount
-        self.window.xw_max += self.px_amount
-        self.window.yw_max += self.px_amount   
+        self.window.x_min -= self.px_amount
+        self.window.y_min -= self.px_amount
+        self.window.x_max += self.px_amount
+        self.window.y_max += self.px_amount   
         self.draw_objects()
 
     # changes window size and redraw  all objects (the objects will appear to be moving up).
     def moveup(self):
         self.output_text_edit.append("Moving up {}px.".format(self.px_amount))        
-        self.window.yw_min -= self.px_amount
-        self.window.yw_max -= self.px_amount
+        self.window.y_min -= self.px_amount
+        self.window.y_max -= self.px_amount
         self.draw_objects()
 
     # changes window size and redraw  all objects (the objects will appear to be moving down).
     def movedown(self):
         self.output_text_edit.append("Moving down {}px.".format(self.px_amount))        
-        self.window.yw_min += self.px_amount
-        self.window.yw_max += self.px_amount
+        self.window.y_min += self.px_amount
+        self.window.y_max += self.px_amount
         self.draw_objects()
 
     # changes window size and redraw  all objects (the objects will appear to be moving to the left).
     def moveleft(self):
         self.output_text_edit.append("Moving left {}px.".format(self.px_amount))        
-        self.window.xw_min += self.px_amount
-        self.window.xw_max += self.px_amount
+        self.window.x_min += self.px_amount
+        self.window.x_max += self.px_amount
         self.draw_objects()
 
     # changes window size and redraw  all objects (the objects will appear to be moving to the right).
     def moveright(self):
         self.output_text_edit.append("Moving right {}px.".format(self.px_amount))        
-        self.window.xw_min -= self.px_amount
-        self.window.xw_max -= self.px_amount
+        self.window.x_min -= self.px_amount
+        self.window.x_max -= self.px_amount
         self.draw_objects()
 
 
@@ -398,14 +349,14 @@ class Ui_MainWindow(QMainWindow):
         self.view_port_label.update()
 
     # draws line
-    def draw_line(self,x1,y1,x2,y2):
+    def draw_line(self, begin: Point, end: Point):
         painter = QtGui.QPainter(self.view_port_label.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(self.pen_width)
         pen.setColor(QtGui.QColor(self.color))
         painter.setPen(pen)
         # the display file is x1,y1,x2,y2 - this points represent the object line.
-        painter.drawLine(x1, y1, x2,y2)
+        painter.drawLine(begin.x, begin.y, end.x, end.y)
         painter.end()
 
 
@@ -414,16 +365,10 @@ class Ui_MainWindow(QMainWindow):
         print(values['x1'], values['y1'], values['x2'], values['y2'])
         self.output_text_edit.append("Values got from user are: (X1: {} ,Y1: {}) (X2: {} ,Y2: {}).".format(values['x1'], values['y1'], values['x2'], values['y2']))
         
-        Xvp1 = transform_xviewport(int(values['x1']),self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-        Yvp1 = transform_yviewport(int(values['y1']),self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-        Xvp2 = transform_xviewport(int(values['x2']),self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-        Yvp2 = transform_yviewport(int(values['y2']),self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-        line = Line(int(values['x1']), int(values['y1']), int(values['x2']), int(values['y2']))
+        line = Line(Point(int(values['x1']), int(values['y1'])), Point(int(values['x2']), int(values['y2'])))
         self.obj_list_combo_box.addItem("{}-Line".format(len(self.objects)))
         self.objects.append(line)
-        self.draw_line(Xvp1, Yvp1, Xvp2, Yvp2)
+        self.draw_obj(line)
 
     # when the action draw point is pressed, get user input, transform it and call drawpoint funtion
     def action_draw_point(self):
@@ -440,27 +385,19 @@ class Ui_MainWindow(QMainWindow):
         y1 = i
         # the display file of a point is x1,y1 - they represent the point
         #print("x1:", x1)
-        #print(self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-        Xvp = transform_xviewport(x1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-        Yvp = transform_yviewport(y1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
+        #print(self.window.x_min,self.window.x_max,self.viewport.x_min,self.viewport.x_max)
 
         point = Point(x1,y1)
         self.obj_list_combo_box.addItem("{}-Point".format(len(self.objects)))
         self.objects.append(point)
 
-        self.draw_point(Xvp,Yvp)
+        self.draw_obj(point)
         self.output_text_edit.append("Point ({} , {}) was drawn.".format(x1,y1))
         self.view_port_label.update()
 
     # draws a point in the viewport
-    def draw_point(self,x1,y1):    
-        painter = QtGui.QPainter(self.view_port_label.pixmap())
-        pen = QtGui.QPen()
-        pen.setWidth(self.pen_width)
-        pen.setColor(self.color)
-        painter.setPen(pen)
-        painter.drawPoint(x1, y1)
-        painter.end()
+    def draw_point(self, point: Point):   
+        self.draw_line(point, point)
 
     # get user input (point list) and draw a polygon in the viewport
     def action_draw_polygon(self):
@@ -492,26 +429,10 @@ class Ui_MainWindow(QMainWindow):
             point = Point(x1,y1)
             points.append(point)
 
-        for i in range(len(points)):
-            # draw line of point[i] with [i+1] mod len(points)        
-            x1 = points[i].x
-            y1 = points[i].y
-            x2 = points[(i+1) % len(points)].x
-            y2 = points[(i+1) % len(points)].y
-            #print("x1,y1:",x1,y1)
-            #print("x2,y2:",x2,y2)
-
-            Xvp1 = transform_xviewport(x1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-            Yvp1 = transform_yviewport(y1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-            Xvp2 = transform_xviewport(x2,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-            Yvp2 = transform_yviewport(y2,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)        
-
-            self.draw_line_constant_color(Xvp1, Yvp1, Xvp2, Yvp2,color)
-
         polygon = Polygon(points)
         self.obj_list_combo_box.addItem("{}-Polygon".format(len(self.objects)))
         self.objects.append(polygon)
+        self.draw_obj(polygon)
         self.view_port_label.update()
     # changes amount of pixels that will move on the interactive menu
     def px_amount_changed(self):        
@@ -532,51 +453,18 @@ class Ui_MainWindow(QMainWindow):
             index = string[0]
             self.action_clear_viewport_non_destructive()
             obj = self.objects[int(index)]
-            if type(obj) == Point:
-                Xwindow = obj.x
-                Ywindow = obj.y                
-                Xvp = transform_xviewport(Xwindow,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp = transform_yviewport(Ywindow,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-                self.draw_point(Xvp,Yvp)
-            if type(obj) == Line:
-                xw1,yw1,xw2,yw2 = obj.x1,obj.y1,obj.x2,obj.y2
-                Xvp1 = transform_xviewport(xw1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp1 = transform_yviewport(yw1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-                Xvp2 = transform_xviewport(xw2,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                Yvp2 = transform_yviewport(yw2,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-                self.draw_line(Xvp1,Yvp1,Xvp2,Yvp2)
-            if type(obj) == Polygon:
-                points = obj.connected_points_list
-                color = self.color
-                for i in range(len(points)):
-                    # draw line of point[i] with [i+1] mod len(points)        
-                    x1 = points[i].x
-                    y1 = points[i].y
-                    x2 = points[(i+1) % len(points)].x
-                    y2 = points[(i+1) % len(points)].y
-                    #print("x1,y1:",x1,y1)
-                    #print("x2,y2:",x2,y2)
-
-                    Xvp1 = transform_xviewport(x1,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                    Yvp1 = transform_yviewport(y1,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)
-
-                    Xvp2 = transform_xviewport(x2,self.window.xw_min,self.window.xw_max,self.viewport_obj.xvp_min,self.viewport_obj.xvp_max)
-                    Yvp2 = transform_yviewport(y2,self.window.yw_min,self.window.yw_max,self.viewport_obj.yvp_min,self.viewport_obj.yvp_max)        
-
-                    self.draw_line_constant_color(Xvp1, Yvp1, Xvp2, Yvp2,color)
-
+            self.draw_obj(obj)
         self.view_port_label.update()
     
     # draws line without a random choice of color (the color is passed via parameter)
-    def draw_line_constant_color(self,x1,y1,x2,y2,color):
+    def draw_line_constant_color(self, begin: Point, end: Point, color):
         painter = QtGui.QPainter(self.view_port_label.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(self.pen_width)
         pen.setColor(QtGui.QColor(color))
         painter.setPen(pen)
         # the display file is x1,y1,x2,y2 - this points represent the object line.
-        painter.drawLine(x1, y1, x2,y2)
+        painter.drawLine(begin.x, begin.y, end.x, end.y)
         painter.end()
 
     # handles select color action
@@ -588,3 +476,24 @@ class Ui_MainWindow(QMainWindow):
         self.output_text_edit.setFontItalic(False)
         self.output_text_edit.setTextColor(QtGui.QColor('black'))
         self.color = color
+    
+    def draw_obj(self, obj):
+        if type(obj) == Point:
+            vp_point = world_to_viewport(obj, self.window, self.viewport)
+            self.draw_point(vp_point)
+        if type(obj) == Line:
+            vp_begin = world_to_viewport(obj.begin, self.window, self.viewport)
+            vp_end = world_to_viewport(obj.end, self.window, self.viewport)
+            self.draw_line(vp_begin, vp_end)
+        if type(obj) == Polygon:
+            points = obj.connected_points_list
+            color = self.color
+            for i in range(len(points)):
+                # draw line of point[i] with [i+1] mod len(points)        
+                p1 = Point(points[i].x, points[i].y)
+                p2 = Point(points[(i+1) % len(points)].x, points[(i+1) % len(points)].y)
+
+                vp_p1 = world_to_viewport(p1, self.window, self.viewport)
+                vp_p2 = world_to_viewport(p2, self.window, self.viewport)
+
+                self.draw_line_constant_color(vp_p1, vp_p2 ,color)
