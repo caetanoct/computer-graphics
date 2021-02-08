@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog
 import random
 from engine2d.ui.input_dialog import Dialog
-from engine2d.world.geometry import Box, Point, Line
+from engine2d.world.geometry import Box, Point, Line, Polygon
 from engine2d.world.window import Window
 
 # data structure that represents the viewport
@@ -33,11 +33,6 @@ def world_to_viewport(point: Point, window: Window, viewport: Viewport) -> Point
         x=transform_x(point.x, window.x_min, window.x_max, viewport.x_min, viewport.x_max),
         y=transform_y(point.y, window.y_min, window.y_max, viewport.y_min, viewport.y_max)
     )
-
-# used to save objects of type polygon (list of connected points)
-class Polygon():
-    def __init__(self,pointslist):
-        self.connected_points_list = pointslist
 
 # main Graphical User Interface (GUI)
 class Ui_MainWindow(QMainWindow):
@@ -415,17 +410,11 @@ class Ui_MainWindow(QMainWindow):
             vp_end = world_to_viewport(obj.end, self.window, self.viewport)
             self.draw_line(vp_begin, vp_end)
         if type(obj) == Polygon:
-            points = obj.connected_points_list
-            color = self.color
-            for i in range(len(points)):
-                # draw line of point[i] with [i+1] mod len(points)        
-                p1 = Point(points[i].x, points[i].y)
-                p2 = Point(points[(i+1) % len(points)].x, points[(i+1) % len(points)].y)
+            for (begin, end) in obj.edges():
+                vp_begin = world_to_viewport(begin, self.window, self.viewport)
+                vp_end = world_to_viewport(end, self.window, self.viewport)
 
-                vp_p1 = world_to_viewport(p1, self.window, self.viewport)
-                vp_p2 = world_to_viewport(p2, self.window, self.viewport)
-
-                self.draw_line_constant_color(vp_p1, vp_p2 ,color)
+                self.draw_line_constant_color(vp_begin, vp_end, self.color)
     
     def log(self, text, color='black', italic=False):
         self.output_text_edit.setTextColor(QtGui.QColor(color))
