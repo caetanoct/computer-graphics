@@ -1,6 +1,6 @@
 # Computer Graphics Repository - UFSC
 
-###T1 - Window/Viewport Basic System
+### T1 - Window/Viewport Basic System
 
 - Panning/Zooming functions
 
