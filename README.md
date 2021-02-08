@@ -1,5 +1,5 @@
 # Computer Graphics Repository - UFSC
-
+> NOTE: Requires PyQt5
 ### T1 - Window/Viewport Basic System
 
 - Panning/Zooming functions
@@ -8,7 +8,7 @@
 
 - Viewport transformation
 
-To run go to interactive-2d-system directory and execute:
+To run go to **interactive-2d-system** directory and execute:
 ```
 python3 main.py
 ```
