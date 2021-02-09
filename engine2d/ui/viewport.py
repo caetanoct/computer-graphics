@@ -264,7 +264,7 @@ class Ui_MainWindow(QMainWindow):
 
     # changes window size and redraw  all objects (the objects will appear to be moving up).
     def move(self, to: Point):
-        self.log("Moving {} px".format(to))
+        self.log("Moving window in ({}, {})".format(to.x,to.y))
         # calls move method from real world window, the window knows how to move itself by updating the internal data structure of the object.
         self.world.window.move(to)
         # redraw all objects
