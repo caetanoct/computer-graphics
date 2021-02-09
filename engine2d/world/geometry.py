@@ -8,7 +8,7 @@ class Box:
   y_min: float
   x_max: float
   y_max: float
-# data structure that representas a point (X,y)
+# data structure that representas a point (x,y)
 @dataclass
 class Point:
   x: float

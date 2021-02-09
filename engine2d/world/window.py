@@ -1,5 +1,5 @@
 from engine2d.world.geometry import Box, Point
-# the windos knows how to zoom/move
+# the window knows how to zoom/move
 class Window(Box):
   def zoom(self, factor):
     self.x_min += factor

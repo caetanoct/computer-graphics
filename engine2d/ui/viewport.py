@@ -47,6 +47,7 @@ class Ui_MainWindow(QMainWindow):
 
     def __init__(self, world: World):
         super().__init__()
+        # world know how to draw shapes and contains a real world window (that knows how to move/zoom).
         self.world = world
         self.viewport = Viewport(
             world.window.x_min,
@@ -248,28 +249,32 @@ class Ui_MainWindow(QMainWindow):
         self.actiondraw_polygon.setText(_translate("MainWindow", "Draw Polygon"))
         self.actionselect_color_2.setText(_translate("MainWindow", "Select Pen Color"))
     
-    # Clears the canvas - light grey
+    # Clears the canvas - light grey - needs to be called everytime move the window, draw a single object or when we clear the viewport
     def clear_canvas(self):
         self.log("Clearing Viewport 400x400.")
         self.view_port_label.pixmap().fill(Ui_MainWindow.BACKGROUND_COLOR)
-        self.view_port_label.update()
-
-    # changes window size and redraw  all objects (we can see less).
+        self.view_port_label.update()    
+    # changes window size and redraw all objects if zoom + then positive factor, if zoom - then negative factor
     def zoom(self, factor):
         self.log("Zooming in {}px.".format(factor))
+        # calls zoom method from real world window, the window knows how to zoom itself by updating the internal data structure of the object.
         self.world.window.zoom(factor)
+        # redraw all objects
         self.refresh()
 
     # changes window size and redraw  all objects (the objects will appear to be moving up).
     def move(self, to: Point):
         self.log("Moving {} px".format(to))
+        # calls move method from real world window, the window knows how to move itself by updating the internal data structure of the object.
         self.world.window.move(to)
+        # redraw all objects
         self.refresh()
 
     # when draw line is pressed call draw line function in use dialog data funcion (after receiving dialog input)
     def action_draw_line(self):
         self.log("Draw Line Trigerred, drawing line after user input.")
         dg = Dialog()
+        # use_dialog_data_line will be callend when the dialog closes        
         dg.accepted.connect(self.use_dialog_data_line)
         dg.exec_()
         #self.draw_line() - will be executed in use_dialog_data_line
@@ -285,7 +290,7 @@ class Ui_MainWindow(QMainWindow):
         painter.drawLine(begin.x, begin.y, end.x, end.y)
         painter.end()
     
-    # draws line in world's coordinates
+    # draws line in world's coordinates (transforming it to viewport coordinates)
     def draw_world_line(self, begin: Point, end: Point):
         self.draw_viewport_line(
             world_to_viewport(begin, self.world.window, self.viewport),
