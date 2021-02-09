@@ -17,6 +17,7 @@ import random
 from engine2d.ui.input_dialog import Dialog
 from engine2d.world.geometry import Box, Point, Line, Polygon
 from engine2d.world.window import Window
+from engine2d.world.world import World
 
 # data structure that represents the viewport
 class Viewport(Box):
@@ -36,27 +37,32 @@ def world_to_viewport(point: Point, window: Window, viewport: Viewport) -> Point
 
 # main Graphical User Interface (GUI)
 class Ui_MainWindow(QMainWindow):
+    BACKGROUND_COLOR = QtGui.QColor('lightgrey')
     
-    # initialize window and viewport
-    window = Window(0,0,0,0)
-    viewport_obj = Viewport(0,0,0,0)
-
-    # list where our objects will be stored
-    objects = []
     # setting default pxamount (used for menu navigation) and pen color/width
     px_amount = 5
     pen_width = 5
     # set default drawing color to red
     color = QtGui.QColor('red')
 
+    def __init__(self, world: World):
+        super().__init__()
+        self.world = world
+        self.viewport = Viewport(
+            world.window.x_min,
+            world.window.y_min,
+            world.window.x_max,
+            world.window.y_max,
+        )
+
     # draws all objects stored in the process and prints the windows dimensions
-    def draw_objects(self):        
-        self.action_clear_viewport_non_destructive()
+    def refresh(self):        
+        self.clear_canvas()
         self.log("New Window dimensions:", 'green', True)
-        self.log("Window: {}".format(self.window))
-        for obj in self.objects:
-            self.draw_obj(obj)
+        self.log("Window: {}".format(self.world.window))
+        self.world.draw_shapes(self.draw_world_line)
         self.view_port_label.update()
+
     # initialize all GUI components
     def setup_ui(self, MainWindow):
     
@@ -128,13 +134,7 @@ class Ui_MainWindow(QMainWindow):
         self.output_text_edit.setReadOnly(True)
         self.output_text_edit.setObjectName("outputTextEdit")
         
-        self.viewport = Viewport(0,0,400,400)
-        self.window = Window(0,0,400,400)
-        #print(window.X_min)
-        #print(window.Y_min)
-        #print(window.X_max)
-        #print(window.Y_max)
-        self.log("Window dimensions:\n{}".format(self.window), 'green', True)
+        self.log("Window dimensions:\n{}".format(self.world.window), 'green', True)
 
         self.log("Viewport dimensions:\n{}".format(self.viewport), 'red', True)
         
@@ -174,10 +174,10 @@ class Ui_MainWindow(QMainWindow):
         self.obj_list_combo_box.setObjectName("objListComboBox")        
         self.second_layout.addWidget(self.obj_list_combo_box)
 
-        self.draw_button = QtWidgets.QPushButton(self.vertical_layout_widget_2)
-        self.draw_button.setObjectName("drawButton")
-        self.draw_button.clicked.connect(self.handle_draw_button)
-        self.second_layout.addWidget(self.draw_button)
+        # self.draw_button = QtWidgets.QPushButton(self.vertical_layout_widget_2)
+        # self.draw_button.setObjectName("drawButton")
+        # self.draw_button.clicked.connect(self.handle_draw_button)
+        # self.second_layout.addWidget(self.draw_button)
 
         MainWindow.setCentralWidget(self.centralwidget)
         
@@ -207,7 +207,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.actionclear = QtWidgets.QAction(MainWindow)
         self.actionclear.setObjectName("actionclear")
-        self.actionclear.triggered.connect(self.action_clear_viewport)
+        self.actionclear.triggered.connect(self.clear_objects)
 
         self.actionselect_color_2 = QtWidgets.QAction(MainWindow)
         self.actionselect_color_2.setObjectName("actionselect_color_2")
@@ -235,7 +235,7 @@ class Ui_MainWindow(QMainWindow):
         self.up_button.setText(_translate("MainWindow", "up"))
         self.down_button.setText(_translate("MainWindow", "down"))
         self.left_button.setText(_translate("MainWindow", "left"))
-        self.draw_button.setText(_translate("MainWindow", "draw"))
+        # self.draw_button.setText(_translate("MainWindow", "draw"))
         self.right_button.setText(_translate("MainWindow", "right"))
         self.text_viewport_label.setText(_translate("MainWindow", "Viewport - 400x400"))
         self.menu_insert.setTitle(_translate("MainWindow", "Insert"))
@@ -248,47 +248,23 @@ class Ui_MainWindow(QMainWindow):
         self.actiondraw_polygon.setText(_translate("MainWindow", "Draw Polygon"))
         self.actionselect_color_2.setText(_translate("MainWindow", "Select Pen Color"))
     
-    # Clears the viewport (without clearing the list of objects) - light grey
-    def action_clear_viewport_non_destructive(self):        
-        painter = QtGui.QPainter(self.view_port_label.pixmap())
-        pen = QtGui.QPen()
-        pen.setWidth(1600)
-        pen.setColor(QtGui.QColor('lightgrey'))
-        painter.setPen(pen)
-        painter.drawPoint(200,200)        
-        self.view_port_label.update()
-
-    # Clears the viewport - light grey
-    def action_clear_viewport(self):
+    # Clears the canvas - light grey
+    def clear_canvas(self):
         self.log("Clearing Viewport 400x400.")
-        painter = QtGui.QPainter(self.view_port_label.pixmap())
-        pen = QtGui.QPen()
-        pen.setWidth(1600)
-        pen.setColor(QtGui.QColor('lightgrey'))
-        painter.setPen(pen)
-        painter.drawPoint(200,200)
-        for i in range(len(self.objects)):            
-            self.obj_list_combo_box.removeItem(0)
-        self.objects = []
+        self.view_port_label.pixmap().fill(Ui_MainWindow.BACKGROUND_COLOR)
         self.view_port_label.update()
 
     # changes window size and redraw  all objects (we can see less).
     def zoom(self, factor):
         self.log("Zooming in {}px.".format(factor))
-        self.window.x_min += factor
-        self.window.y_min += factor
-        self.window.x_max -= factor
-        self.window.y_max -= factor
-        self.draw_objects()
+        self.world.window.zoom(factor)
+        self.refresh()
 
     # changes window size and redraw  all objects (the objects will appear to be moving up).
     def move(self, to: Point):
         self.log("Moving {} px".format(to))
-        self.window.x_min += to.x
-        self.window.x_max += to.x
-        self.window.y_min += to.y
-        self.window.y_max += to.y
-        self.draw_objects()
+        self.world.window.move(to)
+        self.refresh()
 
     # when draw line is pressed call draw line function in use dialog data funcion (after receiving dialog input)
     def action_draw_line(self):
@@ -299,25 +275,27 @@ class Ui_MainWindow(QMainWindow):
         #self.draw_line() - will be executed in use_dialog_data_line
         self.view_port_label.update()
 
-    # draws line
-    def draw_line(self, begin: Point, end: Point):
+    # draws line in viewport's coordinates
+    def draw_viewport_line(self, begin: Point, end: Point):
         painter = QtGui.QPainter(self.view_port_label.pixmap())
         pen = QtGui.QPen()
         pen.setWidth(self.pen_width)
         pen.setColor(QtGui.QColor(self.color))
         painter.setPen(pen)
-        # the display file is x1,y1,x2,y2 - this points represent the object line.
         painter.drawLine(begin.x, begin.y, end.x, end.y)
         painter.end()
-
+    
+    # draws line in world's coordinates
+    def draw_world_line(self, begin: Point, end: Point):
+        self.draw_viewport_line(
+            world_to_viewport(begin, self.world.window, self.viewport),
+            world_to_viewport(end, self.world.window, self.viewport),
+        )
 
     # transforms user input data from the dialog (defined in input_dialog.py) to viewport coords and calls drawline funtion   
     def use_dialog_data_line(self, values):
         line = Line(Point(int(values['x1']), int(values['y1'])), Point(int(values['x2']), int(values['y2'])))
-        self.log("Values got from user are: {}.".format(line))
-        self.obj_list_combo_box.addItem("{}-Line".format(len(self.objects)))
-        self.objects.append(line)
-        self.draw_obj(line)
+        self.create_object(line)
 
     # when the action draw point is pressed, get user input, transform it and call drawpoint funtion
     def action_draw_point(self):
@@ -327,17 +305,7 @@ class Ui_MainWindow(QMainWindow):
         button = self.sender()
         y1, _ = QInputDialog.getInt(self, "Second value (Integer)","y:", 0, -2147483647, 2147483647, 1)
 
-        point = Point(x1,y1)
-        self.obj_list_combo_box.addItem("{}-Point".format(len(self.objects)))
-        self.objects.append(point)
-
-        self.draw_obj(point)
-        self.log("{} was drawn".format(point))
-        self.view_port_label.update()
-
-    # draws a point in the viewport
-    def draw_point(self, point: Point):   
-        self.draw_line(point, point)
+        self.create_object(Point(x1,y1))
 
     # get user input (point list) and draw a polygon in the viewport
     def action_draw_polygon(self):
@@ -356,44 +324,32 @@ class Ui_MainWindow(QMainWindow):
             button = self.sender()
             y1, _ = QInputDialog.getInt(self, "Enter value of (Integer)","y{}:".format(x+1), 0, -2147483647, 2147483647, 1)
             points.append(Point(x1,y1))
+        self.create_object(Polygon(points))
 
-        polygon = Polygon(points)
-        self.obj_list_combo_box.addItem("{}-Polygon".format(len(self.objects)))
-        self.objects.append(polygon)
-        self.draw_obj(polygon)
-        self.view_port_label.update()
     # changes amount of pixels that will move on the interactive menu
     def px_amount_changed(self):        
         value = self.px_amount_spin_box.value()
         print("New pxAmount:", value)
         self.px_amount = value
         self.log("Px amount was set to {} (Default = 5)".format(self.px_amount))        
+
     # changes value of pen width in class
     def pen_width_changed(self):        
         value = self.pen_width_spin_box.value()
         print("New pen width:", value)
         self.pen_width = value
         self.log("Pen width was set to {} (Default = 5)".format(self.pen_width))
-    # when the draw button is pressed, draw the object that is selected in the object list
-    def handle_draw_button(self):
-        string = self.obj_list_combo_box.currentText()
-        if (len(string) >= 1):
-            index = string[0]
-            self.action_clear_viewport_non_destructive()
-            obj = self.objects[int(index)]
-            self.draw_obj(obj)
-        self.view_port_label.update()
-    
-    # draws line without a random choice of color (the color is passed via parameter)
-    def draw_line_constant_color(self, begin: Point, end: Point, color):
-        painter = QtGui.QPainter(self.view_port_label.pixmap())
-        pen = QtGui.QPen()
-        pen.setWidth(self.pen_width)
-        pen.setColor(QtGui.QColor(color))
-        painter.setPen(pen)
-        # the display file is x1,y1,x2,y2 - this points represent the object line.
-        painter.drawLine(begin.x, begin.y, end.x, end.y)
-        painter.end()
+
+    # # when the draw button is pressed, draw the object that is selected in the object list
+    # def handle_draw_button(self):
+    #     string = self.obj_list_combo_box.currentText()
+    #     if (len(string) >= 1):
+    #         index = string[0]
+    #         self.clear_canvas()
+    #         obj = self.world.shapes[int(index)]
+            
+    #         self.draw_obj(obj)
+    #     self.view_port_label.update()
 
     # handles select color action
     def action_select_color(self):
@@ -401,24 +357,21 @@ class Ui_MainWindow(QMainWindow):
         self.log("New pen color was set.", color, True)
         self.color = color
     
-    def draw_obj(self, obj):
-        if type(obj) == Point:
-            vp_point = world_to_viewport(obj, self.window, self.viewport)
-            self.draw_point(vp_point)
-        if type(obj) == Line:
-            vp_begin = world_to_viewport(obj.begin, self.window, self.viewport)
-            vp_end = world_to_viewport(obj.end, self.window, self.viewport)
-            self.draw_line(vp_begin, vp_end)
-        if type(obj) == Polygon:
-            for (begin, end) in obj.edges():
-                vp_begin = world_to_viewport(begin, self.window, self.viewport)
-                vp_end = world_to_viewport(end, self.window, self.viewport)
-
-                self.draw_line_constant_color(vp_begin, vp_end, self.color)
-    
     def log(self, text, color='black', italic=False):
         self.output_text_edit.setTextColor(QtGui.QColor(color))
         self.output_text_edit.setFontItalic(italic)
         self.output_text_edit.append(text)
         self.output_text_edit.setFontItalic(False)
         self.output_text_edit.setTextColor(QtGui.QColor('black'))
+    
+    def create_object(self, obj):
+        self.obj_list_combo_box.addItem("{}-{}".format(len(self.world.shapes), type(obj).__name__))
+        self.world.shapes.append(obj)
+        self.refresh()
+        self.log("{} was drawn".format(obj))
+
+    def clear_objects(self, object):
+        for _ in range(len(self.world.shapes)):
+            self.obj_list_combo_box.removeItem(0)
+        self.world.shapes = []
+        self.clear_canvas()

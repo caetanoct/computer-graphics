@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union
 
 @dataclass
 class Box:
@@ -30,3 +30,4 @@ class Polygon:
   def edges(self) -> List[Line]:
     return zip(self.points, rotate(self.points, -1))
   
+Shape = Union[Polygon, Line, Point]
