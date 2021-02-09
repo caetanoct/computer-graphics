@@ -174,10 +174,10 @@ class Ui_MainWindow(QMainWindow):
         self.obj_list_combo_box.setObjectName("objListComboBox")        
         self.second_layout.addWidget(self.obj_list_combo_box)
 
-        # self.draw_button = QtWidgets.QPushButton(self.vertical_layout_widget_2)
-        # self.draw_button.setObjectName("drawButton")
-        # self.draw_button.clicked.connect(self.handle_draw_button)
-        # self.second_layout.addWidget(self.draw_button)
+        self.draw_button = QtWidgets.QPushButton(self.vertical_layout_widget_2)
+        self.draw_button.setObjectName("drawButton")
+        self.draw_button.clicked.connect(self.handle_draw_button)
+        self.second_layout.addWidget(self.draw_button)
 
         MainWindow.setCentralWidget(self.centralwidget)
         
@@ -235,7 +235,7 @@ class Ui_MainWindow(QMainWindow):
         self.up_button.setText(_translate("MainWindow", "up"))
         self.down_button.setText(_translate("MainWindow", "down"))
         self.left_button.setText(_translate("MainWindow", "left"))
-        # self.draw_button.setText(_translate("MainWindow", "draw"))
+        self.draw_button.setText(_translate("MainWindow", "draw"))
         self.right_button.setText(_translate("MainWindow", "right"))
         self.text_viewport_label.setText(_translate("MainWindow", "Viewport - 400x400"))
         self.menu_insert.setTitle(_translate("MainWindow", "Insert"))
@@ -340,16 +340,15 @@ class Ui_MainWindow(QMainWindow):
         self.pen_width = value
         self.log("Pen width was set to {} (Default = 5)".format(self.pen_width))
 
-    # # when the draw button is pressed, draw the object that is selected in the object list
-    # def handle_draw_button(self):
-    #     string = self.obj_list_combo_box.currentText()
-    #     if (len(string) >= 1):
-    #         index = string[0]
-    #         self.clear_canvas()
-    #         obj = self.world.shapes[int(index)]
-            
-    #         self.draw_obj(obj)
-    #     self.view_port_label.update()
+    # when the draw button is pressed, draw the object that is selected in the object list
+    def handle_draw_button(self):
+        string = self.obj_list_combo_box.currentText()
+        if (len(string) >= 1):
+            index = string[0]            
+            obj = self.world.shapes[int(index)]
+            self.clear_canvas()
+            self.world.draw_shape(obj, self.draw_world_line)
+            self.view_port_label.update()
 
     # handles select color action
     def action_select_color(self):
