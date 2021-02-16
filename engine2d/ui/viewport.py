@@ -12,13 +12,13 @@
 # objects list.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog
+from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog, QMessageBox
 import random
 from engine2d.ui.input_dialog import Dialog
 from engine2d.world.geometry import Box, Point, Line, Polygon
 from engine2d.world.window import Window
 from engine2d.world.world import World
-
+import engine2d.world.transformations as transformations
 # data structure that represents the viewport
 class Viewport(Box):
     pass
@@ -191,7 +191,7 @@ class Ui_MainWindow(QMainWindow):
         self.menu_insert.setObjectName("menuInsert")
 
         self.menuTransform = QtWidgets.QMenu(self.menubar)
-        self.menuTransform.setObjectName("menuTransform")
+        self.menuTransform.setObjectName("menuTransform")        
 
         self.menuRotation = QtWidgets.QMenu(self.menuTransform)
         self.menuRotation.setObjectName("menuRotation")
@@ -224,6 +224,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.actionTranslation = QtWidgets.QAction(MainWindow)
         self.actionTranslation.setObjectName("actionTranslation")
+        self.actionTranslation.triggered.connect(self.action_translation)
 
         self.actionScaling = QtWidgets.QAction(MainWindow)
         self.actionScaling.setObjectName("actionScaling")
@@ -252,7 +253,7 @@ class Ui_MainWindow(QMainWindow):
         self.menuTransform.addAction(self.menuRotation.menuAction())
 
         self.menubar.addAction(self.menu_insert.menuAction())
-        self.menubar.addAction(self.menuTransform.menuAction())
+        self.menubar.addAction(self.menuTransform.menuAction())        
 
         self.retranslate_ui(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -267,7 +268,7 @@ class Ui_MainWindow(QMainWindow):
         self.up_button.setText(_translate("MainWindow", "up"))
         self.down_button.setText(_translate("MainWindow", "down"))
         self.left_button.setText(_translate("MainWindow", "left"))
-        self.draw_button.setText(_translate("MainWindow", "draw"))
+        self.draw_button.setText(_translate("MainWindow", "Draw"))
         self.right_button.setText(_translate("MainWindow", "right"))
         self.text_viewport_label.setText(_translate("MainWindow", "Viewport - 400x400"))
         self.menu_insert.setTitle(_translate("MainWindow", "Insert"))
@@ -399,7 +400,22 @@ class Ui_MainWindow(QMainWindow):
         color = QColorDialog.getColor()
         self.log("New pen color was set.", color, True)
         self.color = color
-    
+    # handles translation action
+    def action_translation(self):
+        index=self.obj_list_combo_box.currentIndex()
+        if (index==-1):
+            self.log("ERROR: There are no objects in object list")
+        else:
+            Dx,_ = QInputDialog.getInt(self,"Integer input dualog","enter Dx")
+            Dy,_ = QInputDialog.getInt(self,"Integer input dualog","enter Dy")
+            object_selected=self.world.shapes[index]
+            self.log("Selected object: {}".format(object_selected))
+            translation_matrix=transformations.translation_matrix(Dx,Dy)        
+            self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,translation_matrix))            
+            transformed_object = transformations.transform_object(object_selected,translation_matrix)
+            self.log("Selected object (after transformation): {}".format(transformed_object))
+            self.world.shapes[index] = transformed_object
+            self.refresh()
     def log(self, text, color='black', italic=False):
         self.output_text_edit.setTextColor(QtGui.QColor(color))
         self.output_text_edit.setFontItalic(italic)

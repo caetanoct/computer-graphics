@@ -19,7 +19,7 @@
 #
 # TODO: implement translation of objects, scaling (without deslocating), rotations (around the world, around the object, around an arbitrary point)
 #
-from geometry import Point, Line, Polygon
+from engine2d.world.geometry import Point, Line, Polygon
 from typing import List
 import numpy, math
 # general transforming function, we can use this to any kind of transformation given the right matrix
@@ -45,22 +45,19 @@ def rotation_matrix(angle):
 	rotation_matrix=[[math.cos(angle), -math.sin(angle),0], [math.sin(angle),math.cos(angle),0], [0,0,1]]
 	return rotation_matrix
 # checks the type of the object and transform it
-def transform_object(shape, matrix) -> List[Point]:
+def transform_object(shape, matrix):
 	if type(shape) == Point:
-		return list(transform(shape, matrix))
-	if type(shape) == Line:
-		points_t=[]
-		points_t.append(transform(shape.begin, matrix))
-		points_t.append(transform(shape.end, matrix))
-		return points_t
+		return transform(shape, matrix)
+	if type(shape) == Line:		
+		return Line(transform(shape.begin, matrix),transform(shape.end, matrix))
 	if type(shape) == Polygon:
 		points_t=[]
 		for point in shape.points:
 			points_t.append(transform(point,matrix))
-		return points_t
+		return Polygon(points_t)
 # pi radians = 180degrees
-test_line=Line(Point(2,2),Point(200,200))
-test_polygon=Polygon([Point(100,100),Point(200,200),Point(200,100)])
-print(transform_object(test_line,scaling_matrix(2,2)))
-print(transform_object(test_polygon,scaling_matrix(2,2)))
-print(transform_object(test_line,rotation_matrix(math.pi/2)))
+#test_line=Line(Point(2,2),Point(200,200))
+#test_polygon=Polygon([Point(100,100),Point(200,200),Point(200,100)])
+#print(transform_object(test_line,scaling_matrix(2,2)))
+#print(transform_object(test_polygon,scaling_matrix(2,2)))
+#print(transform_object(test_line,rotation_matrix(math.pi/2)))
