@@ -186,8 +186,16 @@ class Ui_MainWindow(QMainWindow):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 495, 22))
         self.menubar.setObjectName("menubar")
         
+
         self.menu_insert = QtWidgets.QMenu(self.menubar)
         self.menu_insert.setObjectName("menuInsert")
+
+        self.menuTransform = QtWidgets.QMenu(self.menubar)
+        self.menuTransform.setObjectName("menuTransform")
+
+        self.menuRotation = QtWidgets.QMenu(self.menuTransform)
+        self.menuRotation.setObjectName("menuRotation")
+
         MainWindow.setMenuBar(self.menubar)
         
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -213,6 +221,21 @@ class Ui_MainWindow(QMainWindow):
         self.actionselect_color_2 = QtWidgets.QAction(MainWindow)
         self.actionselect_color_2.setObjectName("actionselect_color_2")
         self.actionselect_color_2.triggered.connect(self.action_select_color)
+
+        self.actionTranslation = QtWidgets.QAction(MainWindow)
+        self.actionTranslation.setObjectName("actionTranslation")
+
+        self.actionScaling = QtWidgets.QAction(MainWindow)
+        self.actionScaling.setObjectName("actionScaling")
+
+        self.actionAround_the_object = QtWidgets.QAction(MainWindow)
+        self.actionAround_the_object.setObjectName("actionAround_the_object")
+
+        self.actionAround_the_world = QtWidgets.QAction(MainWindow)
+        self.actionAround_the_world.setObjectName("actionAround_the_world")
+
+        self.actionAround_a_point = QtWidgets.QAction(MainWindow)
+        self.actionAround_a_point.setObjectName("actionAround_a_point")
         # end actions
         self.menu_insert.addAction(self.actiondraw_point)
         self.menu_insert.addAction(self.actiondraw_line)
@@ -221,7 +244,15 @@ class Ui_MainWindow(QMainWindow):
         self.menu_insert.addSeparator()
         self.menu_insert.addAction(self.actionselect_color_2)
 
+        self.menuRotation.addAction(self.actionAround_the_object)
+        self.menuRotation.addAction(self.actionAround_the_world)
+        self.menuRotation.addAction(self.actionAround_a_point)
+        self.menuTransform.addAction(self.actionTranslation)
+        self.menuTransform.addAction(self.actionScaling)
+        self.menuTransform.addAction(self.menuRotation.menuAction())
+
         self.menubar.addAction(self.menu_insert.menuAction())
+        self.menubar.addAction(self.menuTransform.menuAction())
 
         self.retranslate_ui(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -248,6 +279,14 @@ class Ui_MainWindow(QMainWindow):
         self.obj_list_label.setText(_translate("MainWindow", "Object list"))
         self.actiondraw_polygon.setText(_translate("MainWindow", "Draw Polygon"))
         self.actionselect_color_2.setText(_translate("MainWindow", "Select Pen Color"))
+        self.actionTranslation.setText(_translate("MainWindow", "Translation"))
+        self.actionScaling.setText(_translate("MainWindow", "Scaling"))
+        self.actionAround_the_object.setText(_translate("MainWindow", "Relative to the object"))
+        self.actionAround_the_world.setText(_translate("MainWindow", "Relative to the world"))
+        self.actionAround_a_point.setText(_translate("MainWindow", "Relative to a point"))
+        self.menuTransform.setTitle(_translate("MainWindow", "Transform"))
+        self.menuRotation.setTitle(_translate("MainWindow", "Rotation"))
+
     
     # Clears the canvas - light grey - needs to be called everytime move the window, draw a single object or when we clear the viewport
     def clear_canvas(self):
