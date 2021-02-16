@@ -19,7 +19,8 @@
 #
 # TODO: implement translation of objects, scaling (without deslocating), rotations (around the world, around the object, around an arbitrary point)
 #
-from geometry import Point
+from geometry import Point, Line, Polygon
+from typing import List
 import numpy, math
 # general transforming function, we can use this to any kind of transformation given the right matrix
 def transform(point: Point, matrix):
@@ -32,19 +33,34 @@ def transform(point: Point, matrix):
 	matrix_result=numpy.matmul(matrix_1,matrix_2)
 	return Point(matrix_result[0],matrix_result[1])
 # translates given point in Dx,Dy
-def translation(point: Point, Dx, Dy):
+def translation_matrix(Dx, Dy):
 	translation_matrix=[[1,0,0], [0,1,0],[Dx,Dy,1]]
-	return transform(point,translation_matrix)
+	return translation_matrix
 # scaling (will move the object)
-def regular_scaling(point: Point, Sx, Sy):
+def scaling_matrix(Sx, Sy):
 	scaling_matrix=[[Sx,0,0], [0,Sy,0],[0,0,1]]
-	return transform(point, scaling_matrix)
-# angle in radians
-def regular_clockwise_rotation(point: Point, angle):
+	return scaling_matrix
+# angle in radians (CLOCKWISE rotation)
+def rotation_matrix(angle):
 	rotation_matrix=[[math.cos(angle), -math.sin(angle),0], [math.sin(angle),math.cos(angle),0], [0,0,1]]
-	return transform(point, rotation_matrix)
-
+	return rotation_matrix
+# checks the type of the object and transform it
+def transform_object(shape, matrix) -> List[Point]:
+	if type(shape) == Point:
+		return list(transform(shape, matrix))
+	if type(shape) == Line:
+		points_t=[]
+		points_t.append(transform(shape.begin, matrix))
+		points_t.append(transform(shape.end, matrix))
+		return points_t
+	if type(shape) == Polygon:
+		points_t=[]
+		for point in shape.points:
+			points_t.append(transform(point,matrix))
+		return points_t
 # pi radians = 180degrees
-print(translation(Point(3,3),-1,-1))
-print(regular_scaling(Point(3,3),2,2))
-print(regular_clockwise_rotation(Point(3,3),math.pi/2))
+test_line=Line(Point(2,2),Point(200,200))
+test_polygon=Polygon([Point(100,100),Point(200,200),Point(200,100)])
+print(transform_object(test_line,scaling_matrix(2,2)))
+print(transform_object(test_polygon,scaling_matrix(2,2)))
+print(transform_object(test_line,rotation_matrix(math.pi/2)))
