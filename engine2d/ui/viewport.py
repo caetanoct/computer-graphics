@@ -417,7 +417,7 @@ class Ui_MainWindow(QMainWindow):
             self.log("Selected object: {}".format(object_selected))
             translation_matrix=transformations.translation_matrix(Dx,Dy)     
             self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,translation_matrix))            
-            transformed_object = transformations.transform_object(object_selected,translation_matrix)
+            transformed_object = object_selected.transform(translation_matrix)
             self.log("Selected object (after transformation): {}".format(transformed_object))
             self.world.shapes[index] = transformed_object
             self.refresh()
