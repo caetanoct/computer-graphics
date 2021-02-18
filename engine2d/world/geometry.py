@@ -45,6 +45,5 @@ class Polygon:
   def edges(self) -> List[Line]:    
     # an iterator of tuples where the first item in each passed iterator is paired together, and then the second item in each passed iterator are paired together...
     return zip(self.points, rotate(self.points, -1))
-
 # A shape is either a Polygon, a Line or a Point  
 Shape = Union[Polygon, Line, Point]
