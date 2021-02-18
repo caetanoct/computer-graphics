@@ -19,42 +19,44 @@
 #
 # TODO: implement translation of objects, scaling (without deslocating), rotations (around the world, around the object, around an arbitrary point)
 #
-from engine2d.world.geometry import Point, Line, Polygon
 from typing import List
+from numbers import Number
 import numpy, math
-# general transforming function, we can use this to any kind of transformation given the right matrix
-def transform(point: Point, matrix):
-	if (len(matrix)>3):
-		print("ERROR: given matrix has more than 3 lines")
-	if (len(matrix[0])>3):
-		print("ERROR: given matrix has more than 3 columns")
-	matrix_1=[point.x,point.y,1]
-	matrix_2=matrix
-	matrix_result=numpy.matmul(matrix_1,matrix_2)
-	return Point(matrix_result[0],matrix_result[1])
+from engine2d.world.geometry import Shape
+
 # translates given point in Dx,Dy
-def translation_matrix(Dx, Dy):
-	translation_matrix=[[1,0,0], [0,1,0],[Dx,Dy,1]]
-	return translation_matrix
+def translation_matrix(Dx: Number, Dy: Number) -> numpy.matrix:
+	return [
+		[1 ,0 ,0],
+		[0 ,1 ,0],
+		[Dx,Dy,1]
+	]
+
 # scaling (will move the object)
-def scaling_matrix(Sx, Sy):
-	scaling_matrix=[[Sx,0,0], [0,Sy,0],[0,0,1]]
-	return scaling_matrix
+def scaling_matrix(Sx: Number, Sy: Number) -> numpy.matrix:
+	return [
+		[Sx,0 ,0],
+		[0 ,Sy,0],
+		[0 ,0 ,1]
+	]
+
 # angle in radians (CLOCKWISE rotation)
-def rotation_matrix(angle):
-	rotation_matrix=[[math.cos(angle), -math.sin(angle),0], [math.sin(angle),math.cos(angle),0], [0,0,1]]
-	return rotation_matrix
-# checks the type of the object and transform it
-def transform_object(shape, matrix):
-	if type(shape) == Point:
-		return transform(shape, matrix)
-	if type(shape) == Line:		
-		return Line(transform(shape.begin, matrix),transform(shape.end, matrix))
-	if type(shape) == Polygon:
-		points_t=[]
-		for point in shape.points:
-			points_t.append(transform(point,matrix))
-		return Polygon(points_t)
+def rotation_matrix(angle: Number) -> numpy.matrix:
+	cos = math.cos(angle)
+	sin = math.sin(angle)
+	return [
+		[cos,-sin , 0],
+		[sin, cos , 0],
+		[0  , 0   , 1]
+	]
+
+# angle in radians (CLOCKWISE rotation)
+def rotation_around_object_matrix(object: Shape, angle: Number) -> numpy.matrix:
+	to_origin = translation_matrix(-object.center())
+	rotate = rotation_matrix(angle)
+	to_center = to_origin * (-1)
+	return to_origin * rotate * to_center
+
 # pi radians = 180degrees
 #test_line=Line(Point(2,2),Point(200,200))
 #test_polygon=Polygon([Point(100,100),Point(200,200),Point(200,100)])
