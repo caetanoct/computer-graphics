@@ -14,6 +14,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QMainWindow, QColorDialog, QMessageBox
 import random
+import numpy, math
 from engine2d.ui.input_dialog import Dialog
 from engine2d.world.geometry import Box, Point, Line, Polygon
 from engine2d.world.window import Window
@@ -228,15 +229,19 @@ class Ui_MainWindow(QMainWindow):
 
         self.actionScaling = QtWidgets.QAction(MainWindow)
         self.actionScaling.setObjectName("actionScaling")
+        self.actionScaling.triggered.connect(self.action_scaling)
 
         self.actionAround_the_object = QtWidgets.QAction(MainWindow)
         self.actionAround_the_object.setObjectName("actionAround_the_object")
+        self.actionAround_the_object.triggered.connect(self.action_rotate_object)
 
         self.actionAround_the_world = QtWidgets.QAction(MainWindow)
         self.actionAround_the_world.setObjectName("actionAround_the_world")
+        self.actionAround_the_world.triggered.connect(self.action_rotate_obj_around_world)
 
         self.actionAround_a_point = QtWidgets.QAction(MainWindow)
         self.actionAround_a_point.setObjectName("actionAround_a_point")
+        self.actionAround_a_point.triggered.connect(self.action_rotate_obj_around_point)
         # end actions
         self.menu_insert.addAction(self.actiondraw_point)
         self.menu_insert.addAction(self.actiondraw_line)
@@ -406,14 +411,105 @@ class Ui_MainWindow(QMainWindow):
         if (index==-1):
             self.log("ERROR: There are no objects in object list")
         else:
-            Dx,_ = QInputDialog.getInt(self,"Integer input dualog","enter Dx")
-            Dy,_ = QInputDialog.getInt(self,"Integer input dualog","enter Dy")
+            Dx,_ = QInputDialog.getInt(self,"Integer input dialog","enter Dx")
+            Dy,_ = QInputDialog.getInt(self,"Integer input dialog","enter Dy")
             object_selected=self.world.shapes[index]
             self.log("Selected object: {}".format(object_selected))
-            translation_matrix=transformations.translation_matrix(Dx,Dy)        
+            translation_matrix=transformations.translation_matrix(Dx,Dy)     
             self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,translation_matrix))            
             transformed_object = transformations.transform_object(object_selected,translation_matrix)
             self.log("Selected object (after transformation): {}".format(transformed_object))
+            self.world.shapes[index] = transformed_object
+            self.refresh()
+    # handles scaling action
+    def action_scaling(self):
+        index=self.obj_list_combo_box.currentIndex()
+        if (index==-1):
+            self.log("ERROR: There are no objects in object list")
+        else:
+            Sx,_ = QInputDialog.getDouble(self,"Double input dialog","enter Sx")
+            Sy,_ = QInputDialog.getDouble(self,"Double input dialog","enter Sy")
+            object_selected=self.world.shapes[index]
+            self.log("Selected object: {}".format(object_selected))
+            object_center_point=object_selected.center()
+            self.log("Object center point: {}".format(object_center_point))
+            translation_matrix=transformations.translation_matrix(-object_center_point.x,-object_center_point.y)
+            self.log("Translation to origin: {}".format(translation_matrix))
+            scaling_matrix=transformations.scaling_matrix(Sx,Sy)
+            self.log("Scaling: {}".format(scaling_matrix))
+            translation_matrix_back=transformations.translation_matrix(object_center_point.x,object_center_point.y)
+            self.log("Translation back: {}".format(translation_matrix_back))
+            resultant_matrix=numpy.matmul(translation_matrix,scaling_matrix)
+            resultant_matrix=numpy.matmul(resultant_matrix,translation_matrix_back)
+            self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,resultant_matrix))
+            transformed_object = transformations.transform_object(object_selected,resultant_matrix)
+            self.log("Selected object (after transformation): {}".format(transformed_object))
+            self.world.shapes[index] = transformed_object
+            self.refresh()
+    # handles rotation around the object action
+    def action_rotate_object(self):
+        index=self.obj_list_combo_box.currentIndex()
+        if (index==-1):
+            self.log("ERROR: There are no objects in object list")
+        else:
+            angle,_ = QInputDialog.getInt(self,"Integer input dialog","enter angle (in degrees):")
+            angle_in_radians = (angle*math.pi)/180
+            object_selected=self.world.shapes[index]
+            self.log("Selected object: {}".format(object_selected))
+            object_center_point=object_selected.center()
+            self.log("Object center point: {}".format(object_center_point))
+            translation_matrix=transformations.translation_matrix(-object_center_point.x,-object_center_point.y)
+            self.log("Translation to origin: {}".format(translation_matrix))
+            rotation_matrix=transformations.rotation_matrix(angle_in_radians)
+            self.log("Rotation matrix: {}".format(rotation_matrix))
+            translation_matrix_back=transformations.translation_matrix(object_center_point.x,object_center_point.y)
+            self.log("Translation back: {}".format(translation_matrix_back))
+            resultant_matrix=numpy.matmul(translation_matrix,rotation_matrix)
+            resultant_matrix=numpy.matmul(resultant_matrix,translation_matrix_back)
+            self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,resultant_matrix))
+            transformed_object = transformations.transform_object(object_selected,resultant_matrix)
+            self.log("Selected object (after transformation): {}".format(transformed_object))
+            self.world.shapes[index] = transformed_object
+            self.refresh()
+    # handles rotation around the world action
+    def action_rotate_obj_around_world(self):
+        index=self.obj_list_combo_box.currentIndex()
+        if (index==-1):
+            self.log("ERROR: There are no objects in object list")
+        else:
+            angle,_ = QInputDialog.getInt(self,"Integer input dialog","enter angle (in degrees):")
+            angle_in_radians = (angle*math.pi)/180
+            object_selected=self.world.shapes[index]
+            self.log("Selected object: {}".format(object_selected))
+            rotation_matrix=transformations.rotation_matrix(angle_in_radians)
+            self.log("Rotation matrix: {}".format(rotation_matrix))
+            self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,rotation_matrix))
+            transformed_object = transformations.transform_object(object_selected,rotation_matrix)
+            self.log("Selected object (after transformation): {}".format(transformed_object))
+            self.world.shapes[index] = transformed_object
+            self.refresh()
+    # handles rotation around an arbitrary point action
+    def action_rotate_obj_around_point(self):
+        index=self.obj_list_combo_box.currentIndex()
+        if (index==-1):
+            self.log("ERROR: There are no objects in object list")
+        else:
+            angle,_ = QInputDialog.getInt(self,"Integer input dialog","enter angle (in degrees):")
+            x,_ = QInputDialog.getInt(self,"Integer input dialog","enter Point x")
+            y,_ = QInputDialog.getInt(self,"Integer input dialog","enter Point y")
+            angle_in_radians = (angle*math.pi)/180
+            point = Point(x,y)
+            object_selected=self.world.shapes[index]            
+            translation_matrix=transformations.translation_matrix(-point.x,-point.y)
+            self.log("Translation of the point: {}".format(translation_matrix))
+            rotation_matrix=transformations.rotation_matrix(angle_in_radians)
+            self.log("Rotation: {}".format(rotation_matrix))
+            translation_matrix_back=transformations.translation_matrix(point.x,point.y)
+            self.log("Translation back: {}".format(translation_matrix_back))
+            resultant_matrix=numpy.matmul(translation_matrix,rotation_matrix)
+            resultant_matrix=numpy.matmul(resultant_matrix,translation_matrix_back)
+            self.log("Object type {} (index={}) was transformed with matrix: {}".format(type(object_selected).__name__,index,resultant_matrix))
+            transformed_object = transformations.transform_object(object_selected,resultant_matrix)
             self.world.shapes[index] = transformed_object
             self.refresh()
     def log(self, text, color='black', italic=False):

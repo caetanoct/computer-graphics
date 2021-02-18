@@ -12,7 +12,7 @@
 #								[0  Sy 0]						#
 #								[0  0  1]						#
 #---------------------------------------------------------------#
-# rotation - clockwise  [x' y' 1] = [x y 1] * [cos_ -sin_ 0]	#
+# rotation -             [x' y' 1] = [x y 1] * [cos_ -sin_ 0]	#
 #											  [sin_  cos_ 0]	#
 #											  [0     0    1]	#
 #---------------------------------------------------------------#
@@ -40,7 +40,7 @@ def translation_matrix(Dx, Dy):
 def scaling_matrix(Sx, Sy):
 	scaling_matrix=[[Sx,0,0], [0,Sy,0],[0,0,1]]
 	return scaling_matrix
-# angle in radians (CLOCKWISE rotation)
+# angle in radians
 def rotation_matrix(angle):
 	rotation_matrix=[[math.cos(angle), -math.sin(angle),0], [math.sin(angle),math.cos(angle),0], [0,0,1]]
 	return rotation_matrix
@@ -61,3 +61,4 @@ def transform_object(shape, matrix):
 #print(transform_object(test_line,scaling_matrix(2,2)))
 #print(transform_object(test_polygon,scaling_matrix(2,2)))
 #print(transform_object(test_line,rotation_matrix(math.pi/2)))
+#print(transform(Point(2,2), rotation_matrix(math.pi/2)))
