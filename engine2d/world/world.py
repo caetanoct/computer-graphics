@@ -15,15 +15,10 @@ class World:
     if type(shape) == Line:
       draw_line(shape.begin, shape.end)
     if type(shape) == Polygon:
-      for (begin, end) in shape.edges():
-        draw_line(begin, end)
+      for line in shape.edges():
+        draw_line(line.begin, line.end)
+  
   # draws all shapes in the list of shapes
   def draw_shapes(self, draw_line):
     for shape in self.shapes:
-      if type(shape) == Point:
-        draw_line(shape, shape)
-      if type(shape) == Line:
-        draw_line(shape.begin, shape.end)
-      if type(shape) == Polygon:
-        for (begin, end) in shape.edges():
-          draw_line(begin, end)
+      self.draw_shape(shape, draw_line)

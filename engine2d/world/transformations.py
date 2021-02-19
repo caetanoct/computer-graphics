@@ -21,67 +21,50 @@
 #
 from typing import List
 from numbers import Number
-import numpy, math
-from engine2d.world.geometry import Shape
+import numpy as np, math
+from engine2d.world.geometry import Shape, Point
 
 # translates given point in Dx,Dy
-def translation_matrix(Dx: Number, Dy: Number) -> numpy.matrix:
-	return [
-		[1 ,0 ,0],
-		[0 ,1 ,0],
-		[Dx,Dy,1]
-	]
+def translation_matrix(p: Point) -> np.ndarray:
+	return np.array([
+		[1  ,0  , 0],
+		[0  ,1  , 0],
+		[p.x,p.y, 1]
+	])
 
 # scaling (will move the object)
-<<<<<<< HEAD
-def scaling_matrix(Sx, Sy):
-	scaling_matrix=[[Sx,0,0], [0,Sy,0],[0,0,1]]
-	return scaling_matrix
-# angle in radians
-def rotation_matrix(angle):
-	rotation_matrix=[[math.cos(angle), -math.sin(angle),0], [math.sin(angle),math.cos(angle),0], [0,0,1]]
-	return rotation_matrix
-# checks the type of the object and transform it
-def transform_object(shape, matrix):
-	if type(shape) == Point:
-		return transform(shape, matrix)
-	if type(shape) == Line:		
-		return Line(transform(shape.begin, matrix),transform(shape.end, matrix))
-	if type(shape) == Polygon:
-		points_t=[]
-		for point in shape.points:
-			points_t.append(transform(point,matrix))
-		return Polygon(points_t)
-=======
-def scaling_matrix(Sx: Number, Sy: Number) -> numpy.matrix:
-	return [
+def scaling_matrix(Sx: Number, Sy: Number) -> np.ndarray:
+	return np.array([
 		[Sx,0 ,0],
 		[0 ,Sy,0],
 		[0 ,0 ,1]
-	]
+	])
 
-# angle in radians (CLOCKWISE rotation)
-def rotation_matrix(angle: Number) -> numpy.matrix:
-	cos = math.cos(angle)
-	sin = math.sin(angle)
-	return [
+# angle in degrees (CLOCKWISE rotation)
+def rotation_matrix(angle: Number) -> np.ndarray:
+	rad = math.pi / 180 * angle
+	cos = math.cos(rad)
+	sin = math.sin(rad)
+	return np.array([
 		[cos,-sin , 0],
 		[sin, cos , 0],
 		[0  , 0   , 1]
-	]
+	])
 
-# angle in radians (CLOCKWISE rotation)
-def rotation_around_object_matrix(object: Shape, angle: Number) -> numpy.matrix:
+# scaling (will stretch the object)
+def scaling_around_object_matrix(object: Shape, Sx: Number, Sy: Number) -> np.ndarray:
 	to_origin = translation_matrix(-object.center())
+	scale = scaling_matrix(Sx, Sy)
+	to_center = to_origin * (-1)
+	return to_origin.dot(scale.dot(to_center))
+
+# angle in degrees (CLOCKWISE rotation)
+def rotation_around_point_matrix(axis: Point, angle: Number) -> np.ndarray:
+	to_origin = translation_matrix(-axis)
 	rotate = rotation_matrix(angle)
 	to_center = to_origin * (-1)
-	return to_origin * rotate * to_center
+	return to_origin.dot(rotate.dot(to_center))
 
->>>>>>> 092652ec6292b51d0ad16c293b2154b58686645f
-# pi radians = 180degrees
-#test_line=Line(Point(2,2),Point(200,200))
-#test_polygon=Polygon([Point(100,100),Point(200,200),Point(200,100)])
-#print(transform_object(test_line,scaling_matrix(2,2)))
-#print(transform_object(test_polygon,scaling_matrix(2,2)))
-#print(transform_object(test_line,rotation_matrix(math.pi/2)))
-#print(transform(Point(2,2), rotation_matrix(math.pi/2)))
+# angle in degrees (CLOCKWISE rotation)
+def rotation_around_object_matrix(object: Shape, angle: Number) -> np.ndarray:
+	return rotation_around_point_matrix(object.center(), angle)
