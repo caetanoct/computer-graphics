@@ -51,8 +51,8 @@ class Ui_MainWindow(QMainWindow):
   BACKGROUND_COLOR = QtGui.QColor('lightgrey')
 
   # setting default pxamount (used for menu navigation) and pen color/width
-  px_amount = 5
-  pen_width = 5
+  px_amount = 0.2
+  pen_width = 3
   # set default drawing color to red
   color = QtGui.QColor('red')
 
@@ -60,12 +60,7 @@ class Ui_MainWindow(QMainWindow):
     super().__init__()
     # world know how to draw shapes and contains a real world window (that knows how to move/zoom).
     self.world = world
-    self.viewport = Viewport(
-        world.window.x_min,
-        world.window.y_min,
-        world.window.x_max,
-        world.window.y_max,
-    )
+    self.viewport = Viewport(0, 0, 400, 400)
 
   # draws all objects stored in the process and prints the windows dimensions
   def refresh(self):
@@ -168,9 +163,10 @@ class Ui_MainWindow(QMainWindow):
         'This is the <b>number of pixels</b> that the object will move.')
     self.second_layout.addWidget(self.px_amount_label)
 
-    self.px_amount_spin_box = QtWidgets.QSpinBox(self.vertical_layout_widget_2)
+    self.px_amount_spin_box = QtWidgets.QDoubleSpinBox(
+        self.vertical_layout_widget_2)
     self.px_amount_spin_box.setObjectName("pxAmountSpinBox")
-    self.px_amount_spin_box.setValue(5)
+    self.px_amount_spin_box.setValue(self.px_amount)
     self.px_amount_spin_box.valueChanged.connect(self.px_amount_changed)
     self.px_amount_spin_box.setToolTip(
         'This is the <b>number of pixels</b> that the object will move.')
@@ -181,7 +177,7 @@ class Ui_MainWindow(QMainWindow):
     self.second_layout.addWidget(self.pen_width_label)
     self.pen_width_spin_box = QtWidgets.QSpinBox(self.vertical_layout_widget_2)
     self.pen_width_spin_box.setObjectName("penWidthSpinBox")
-    self.pen_width_spin_box.setValue(5)
+    self.pen_width_spin_box.setValue(self.pen_width)
     self.pen_width_spin_box.valueChanged.connect(self.pen_width_changed)
     self.second_layout.addWidget(self.pen_width_spin_box)
 
@@ -317,6 +313,10 @@ class Ui_MainWindow(QMainWindow):
     self.menuTransform.setTitle(_translate("MainWindow", "Transform"))
     self.menuRotation.setTitle(_translate("MainWindow", "Rotation"))
 
+    for i, shape in enumerate(self.world.shapes):
+      self.obj_list_combo_box.addItem(
+          "{}-{}".format(i, type(shape).__name__))
+    self.refresh()
   # Clears the canvas - light grey - needs to be called everytime move the window, draw a single object or when we clear the viewport
 
   def clear_canvas(self):

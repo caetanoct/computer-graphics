@@ -21,50 +21,63 @@
 #
 from typing import List
 from numbers import Number
-import numpy as np, math
+import numpy as np
+import math
 from engine2d.world.geometry import Shape, Point
 
 # translates given point in Dx,Dy
+
+
 def translation_matrix(p: Point) -> np.ndarray:
-	return np.array([
-		[1  ,0  , 0],
-		[0  ,1  , 0],
-		[p.x,p.y, 1]
-	])
+  return np.array([
+      [1, 0, 0],
+      [0, 1, 0],
+      [p.x, p.y, 1]
+  ])
 
 # scaling (will move the object)
+
+
 def scaling_matrix(Sx: Number, Sy: Number) -> np.ndarray:
-	return np.array([
-		[Sx,0 ,0],
-		[0 ,Sy,0],
-		[0 ,0 ,1]
-	])
+  return np.array([
+      [Sx, 0, 0],
+      [0, Sy, 0],
+      [0, 0, 1]
+  ])
 
 # angle in degrees (CLOCKWISE rotation)
+
+
 def rotation_matrix(angle: Number) -> np.ndarray:
-	rad = math.pi / 180 * angle
-	cos = math.cos(rad)
-	sin = math.sin(rad)
-	return np.array([
-		[cos,-sin , 0],
-		[sin, cos , 0],
-		[0  , 0   , 1]
-	])
+  rad = math.pi / 180 * angle
+  cos = math.cos(rad)
+  sin = math.sin(rad)
+  return np.array([
+      [cos, -sin, 0],
+      [sin, cos, 0],
+      [0, 0, 1]
+  ])
 
 # scaling (will stretch the object)
+
+
 def scaling_around_object_matrix(object: Shape, Sx: Number, Sy: Number) -> np.ndarray:
-	to_origin = translation_matrix(-object.center())
-	scale = scaling_matrix(Sx, Sy)
-	to_center = to_origin * (-1)
-	return to_origin.dot(scale.dot(to_center))
+  to_origin = translation_matrix(-object.center())
+  scale = scaling_matrix(Sx, Sy)
+  to_center = translation_matrix(+object.center())
+  return to_origin.dot(scale.dot(to_center))
 
 # angle in degrees (CLOCKWISE rotation)
+
+
 def rotation_around_point_matrix(axis: Point, angle: Number) -> np.ndarray:
-	to_origin = translation_matrix(-axis)
-	rotate = rotation_matrix(angle)
-	to_center = to_origin * (-1)
-	return to_origin.dot(rotate.dot(to_center))
+  to_origin = translation_matrix(-axis)
+  rotate = rotation_matrix(angle)
+  to_center = translation_matrix(+axis)
+  return to_origin.dot(rotate.dot(to_center))
 
 # angle in degrees (CLOCKWISE rotation)
+
+
 def rotation_around_object_matrix(object: Shape, angle: Number) -> np.ndarray:
-	return rotation_around_point_matrix(object.center(), angle)
+  return rotation_around_point_matrix(object.center(), angle)
