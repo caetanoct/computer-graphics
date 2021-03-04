@@ -256,6 +256,10 @@ class Ui_MainWindow(QMainWindow):
     self.actionAround_a_point.setObjectName("actionAround_a_point")
     self.actionAround_a_point.triggered.connect(
         self.action_rotate_obj_around_point)
+    self.actionRotate_window = QtWidgets.QAction(MainWindow)
+    self.actionRotate_window.setObjectName("actionRotate_window")
+    self.actionRotate_window.triggered.connect(
+        self.action_rotate_window)
     # end actions
     self.menu_insert.addAction(self.actiondraw_point)
     self.menu_insert.addAction(self.actiondraw_line)
@@ -267,6 +271,7 @@ class Ui_MainWindow(QMainWindow):
     self.menuRotation.addAction(self.actionAround_the_object)
     self.menuRotation.addAction(self.actionAround_the_world)
     self.menuRotation.addAction(self.actionAround_a_point)
+    self.menuRotation.addAction(self.actionRotate_window)
     self.menuTransform.addAction(self.actionTranslation)
     self.menuTransform.addAction(self.actionScaling)
     self.menuTransform.addAction(self.menuRotation.menuAction())
@@ -310,6 +315,8 @@ class Ui_MainWindow(QMainWindow):
         _translate("MainWindow", "Relative to the world"))
     self.actionAround_a_point.setText(
         _translate("MainWindow", "Relative to a point"))
+    self.actionRotate_window.setText(
+        _translate("MainWindow", "Rotate Window"))    
     self.menuTransform.setTitle(_translate("MainWindow", "Transform"))
     self.menuRotation.setTitle(_translate("MainWindow", "Rotation"))
 
@@ -524,3 +531,7 @@ class Ui_MainWindow(QMainWindow):
       self.obj_list_combo_box.removeItem(0)
     self.world.shapes = []
     self.clear_canvas()
+  def action_rotate_window(self):
+    angle, _ = QInputDialog.getInt(
+          self, "Integer input dialog", "enter angle (in degrees):")
+    print("rotate window in angle",angle)
