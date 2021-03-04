@@ -8,7 +8,12 @@ from engine2d.world.window import Window
 class World:
   # world display file
   shapes: List[Shape]
-  window = Window(-1, -1, 1, 1)
+
+  # it was told that this was the recommended window bounds
+  # but it so happens that this makes the scaling matrix half every coordinates
+  # so we are halving the bounds, so the scaling matrix is the identity(it eases the tests)
+  # window = Window(-1, -1, 1, 1)
+  window = Window(-0.5, -0.5, 0.5, 0.5)
 
   def __init__(self, shapes):
     if len(shapes) == 0:

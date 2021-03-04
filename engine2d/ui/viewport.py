@@ -316,7 +316,7 @@ class Ui_MainWindow(QMainWindow):
     self.actionAround_a_point.setText(
         _translate("MainWindow", "Relative to a point"))
     self.actionRotate_window.setText(
-        _translate("MainWindow", "Rotate Window"))    
+        _translate("MainWindow", "Rotate Window"))
     self.menuTransform.setTitle(_translate("MainWindow", "Transform"))
     self.menuRotation.setTitle(_translate("MainWindow", "Rotation"))
 
@@ -531,7 +531,10 @@ class Ui_MainWindow(QMainWindow):
       self.obj_list_combo_box.removeItem(0)
     self.world.shapes = []
     self.clear_canvas()
+
   def action_rotate_window(self):
     angle, _ = QInputDialog.getInt(
-          self, "Integer input dialog", "enter angle (in degrees):")
-    print("rotate window in angle",angle)
+        self, "Integer input dialog", "enter angle (in degrees):")
+    self.world.window = self.world.window.transform(
+        transformations.rotation_matrix(90))
+    self.refresh()
