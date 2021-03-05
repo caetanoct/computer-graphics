@@ -19,13 +19,13 @@ class TestWorld(unittest.TestCase):
     point = Point(cos(radians(60)), sin(radians(60)))
     world = World([point])
 
+    # rotate the window 60 degrees(CLOCKWISE)
+    world.window = world.window.transform(rotation_matrix(60))
+
     normalized_point = world.normalize_shape(point)
 
-    # rotate the window 60 degrees(CLOCKWISE)
-    world.window.transform(rotation_matrix(60))
-
     # point should be in the X axis
-    self.assertEqual(point, Point(1, 0))
+    self.assertEqual(normalized_point, Point(1, 0))
 
 
 if __name__ == '__main__':

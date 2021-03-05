@@ -44,7 +44,8 @@ class Point(numpy.ndarray):
       raise "ERROR: given matrix has more than 3 lines"
     if len(matrix[0]) > 3:
       raise "ERROR: given matrix has more than 3 columns"
-    res = numpy.matmul([self.x, self.y, 1], matrix)
+    vec = numpy.array([self.x, self.y, 1])
+    res = matrix.dot(vec)
     return Point(res[0], res[1])
 
   def center(self):

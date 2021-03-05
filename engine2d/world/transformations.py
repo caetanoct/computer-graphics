@@ -30,9 +30,9 @@ from engine2d.world.geometry import Shape, Point
 
 def translation_matrix(p: Point) -> np.ndarray:
   return np.array([
-      [1, 0, 0],
-      [0, 1, 0],
-      [p.x, p.y, 1]
+      [1, 0, p.x],
+      [0, 1, p.y],
+      [0, 0, 1]
   ])
 
 # scaling (will move the object)
@@ -65,7 +65,7 @@ def scaling_around_object_matrix(object: Shape, Sx: Number, Sy: Number) -> np.nd
   to_origin = translation_matrix(-object.center())
   scale = scaling_matrix(Sx, Sy)
   to_center = translation_matrix(+object.center())
-  return to_origin.dot(scale.dot(to_center))
+  return to_center.dot(scale.dot(to_origin))
 
 # angle in degrees (CLOCKWISE rotation)
 
@@ -74,7 +74,7 @@ def rotation_around_point_matrix(axis: Point, angle: Number) -> np.ndarray:
   to_origin = translation_matrix(-axis)
   rotate = rotation_matrix(angle)
   to_center = translation_matrix(+axis)
-  return to_origin.dot(rotate.dot(to_center))
+  return to_center.dot(rotate.dot(to_origin))
 
 # angle in degrees (CLOCKWISE rotation)
 
