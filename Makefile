@@ -2,7 +2,7 @@ setup:
 	pip install -r requirements.txt
 
 start:
-	python main.py
+	python3 main.py
 
 test:
-	python -m unittest discover
+	python3 -m unittest discover
