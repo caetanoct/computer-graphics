@@ -42,4 +42,4 @@ class Window(Box):
     scale = scaling_matrix(1 / self.width(), 1 / self.height())
 
     matrix = to_origin.dot(correct_angle.dot(scale))
-    return matrix
+    return matrix  

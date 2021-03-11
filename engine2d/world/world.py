@@ -22,6 +22,16 @@ class World:
           Point(0, 0.1),
           Point(0.1, 0.1),
           Line(Point(0.5, 0.5), Point(0.9, 0.9)),
+          Line(Point(2, 2), Point(-2, -2)),
+          Line(Point(2, -2), Point(-2, 2)),
+          Line(Point(2, 0), Point(-2, 0)),
+          Line(Point(-2, 0), Point(2, 0)),
+          Line(Point(0, 2), Point(0, -2)),
+          Line(Point(0, -2), Point(0, 2)),          
+          Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
+          Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
+          Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
+          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
           Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
                   Point(-0.6, -0.6), Point(-0.6, -0.3))
       ]

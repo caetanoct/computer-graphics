@@ -47,7 +47,7 @@ class Ui_MainWindow(QMainWindow):
   VIEWPORT_MARGIN = 25
 
   # setting default pxamount (used for menu navigation) and pen color/width
-  px_amount = 0.2
+  px_amount = 0.05
   pen_width = 3
   # set default drawing color to red
   color = QtGui.QColor('red')
