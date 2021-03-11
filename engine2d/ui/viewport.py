@@ -17,7 +17,8 @@ import random
 import numpy
 import math
 from engine2d.ui.input_dialog import Dialog
-from engine2d.world.geometry import Box, Point, Line, Polygon
+from engine2d.world.geometry import Point, Line, Polygon
+from engine2d.world.box import Box
 from engine2d.world.window import Window
 from engine2d.world.world import World
 import engine2d.world.transformations as transformations

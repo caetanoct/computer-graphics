@@ -1,5 +1,6 @@
 from __future__ import annotations
-from engine2d.world.geometry import Box, Point, Vector
+from engine2d.world.geometry import Point, Vector
+from engine2d.world.box import Box
 from engine2d.world.transformations import translation_matrix, rotation_matrix, scaling_matrix
 import numpy
 import math
@@ -42,4 +43,4 @@ class Window(Box):
     scale = scaling_matrix(1 / self.width(), 1 / self.height())
 
     matrix = to_origin.dot(correct_angle.dot(scale))
-    return matrix  
+    return matrix
