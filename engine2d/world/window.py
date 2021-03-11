@@ -36,20 +36,10 @@ class Window(Box):
     to_origin = translation_matrix(-self.center())
     # in radians
     diff_y_axis_up_vector = Vector(x=0, y=1).dot(self.up)
-    # print(diff_y_axis_up_vector)
-    # print(math.acos(diff_y_axis_up_vector))
-    print(f'diff_y_axis_up_vector: {diff_y_axis_up_vector}')
     angle_correction = - math.acos(diff_y_axis_up_vector) * 180 / math.pi
-    print(f'Angle Correction: {angle_correction}')
     correct_angle = rotation_matrix(angle_correction)
 
-    width = self.x_max - self.x_min
-    height = self.y_max - self.y_min
-    scale = scaling_matrix(1 / width, 1 / height)
+    scale = scaling_matrix(1 / self.width(), 1 / self.height())
 
-    print(f'to_origin:\n{to_origin}')
-    # print(correct_angle)
-    print(f'self: {self}\nself.center(): {self.center()}')
     matrix = to_origin.dot(correct_angle.dot(scale))
-    print(f'result matrix:\n{matrix}')
     return matrix

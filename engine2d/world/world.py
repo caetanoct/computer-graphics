@@ -28,18 +28,30 @@ class World:
     else:
       self.shapes = shapes
 
+    self.shapes.append(self.window)
+
   # draws a single shape
   def draw_shape(self, shape, draw_line):
     # print("Drawing shape {}".format(shape))
     normalized_shape = self.normalize_shape(shape)
     # print("Drawing shape[normalized] {}".format(normalized_shape))
     if type(normalized_shape) == Point:
-      draw_line(normalized_shape, normalized_shape)
+      if self.window.is_point_inside(normalized_shape):
+        draw_line(normalized_shape, normalized_shape)
     if type(normalized_shape) == Line:
       draw_line(normalized_shape.begin, normalized_shape.end)
     if type(normalized_shape) == Polygon:
       for line in normalized_shape.edges():
         draw_line(line.begin, line.end)
+    if type(normalized_shape) == Window:
+      a = Point(self.window.x_min, self.window.y_min)
+      b = Point(self.window.x_min, self.window.y_max)
+      c = Point(self.window.x_max, self.window.y_max)
+      d = Point(self.window.x_max, self.window.y_min)
+      draw_line(a, b)
+      draw_line(b, c)
+      draw_line(c, d)
+      draw_line(d, a)
 
   # draws all shapes in the list of shapes
   def draw_shapes(self, draw_line):

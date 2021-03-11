@@ -30,19 +30,14 @@ class Viewport(Box):
 # transforms real world coordinates into viewport coordinates
 
 
-def world_to_viewport(point: Point, window: Window, viewport: Viewport) -> Point:
-  def transform_x(x_w, Xw_min, Xw_max, Xvp_min, Xvp_max):
-    return (((x_w - Xw_min) / (Xw_max - Xw_min)) * (Xvp_max - Xvp_min))
+def window_to_viewport(point: Point, w: Window, vp: Viewport) -> Point:
+  scale_x = vp.width() / w.width()
+  new_x = vp.x_min + (point.x - w.x_min) * scale_x
 
-  def transform_y(y_w, Yw_min, Yw_max, Yvp_min, Yvp_max):
-    return (1-((y_w-Yw_min)/(Yw_max-Yw_min))) * (Yvp_max - Yvp_min)
+  scale_y = vp.height() / w.height()
+  new_y = vp.y_min + (1-((point.y - w.y_min))) * scale_y
 
-  return Point(
-      x=transform_x(point.x, window.x_min, window.x_max,
-                    viewport.x_min, viewport.x_max),
-      y=transform_y(point.y, window.y_min, window.y_max,
-                    viewport.y_min, viewport.y_max)
-  )
+  return Point(x=new_x, y=new_y)
 
 # main Graphical User Interface (GUI)
 
@@ -70,19 +65,7 @@ class Ui_MainWindow(QMainWindow):
     self.log("New Window dimensions:", 'green', True)
     self.log("Window: {}".format(self.world.window))
     self.world.draw_shapes(self.draw_world_line)
-    self.draw_viewport_box()
     self.view_port_label.update()
-
-  def draw_viewport_box(self):
-    # corners
-    a = Point(self.viewport.x_min, self.viewport.y_min)
-    b = Point(self.viewport.x_min, self.viewport.y_max)
-    c = Point(self.viewport.x_max, self.viewport.y_max)
-    d = Point(self.viewport.x_max, self.viewport.y_min)
-    self.draw_viewport_line(a, b)
-    self.draw_viewport_line(b, c)
-    self.draw_viewport_line(c, d)
-    self.draw_viewport_line(d, a)
 
   # initialize all GUI components
   def setup_ui(self, MainWindow):
@@ -385,8 +368,8 @@ class Ui_MainWindow(QMainWindow):
   # draws line in world's coordinates (transforming it to viewport coordinates)
   def draw_world_line(self, begin: Point, end: Point):
     self.draw_viewport_line(
-        world_to_viewport(begin, self.world.window, self.viewport),
-        world_to_viewport(end, self.world.window, self.viewport),
+        window_to_viewport(begin, self.world.window, self.viewport),
+        window_to_viewport(end, self.world.window, self.viewport),
     )
 
   # transforms user input data from the dialog (defined in input_dialog.py) to viewport coords and calls drawline funtion
