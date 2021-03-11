@@ -49,6 +49,7 @@ def world_to_viewport(point: Point, window: Window, viewport: Viewport) -> Point
 
 class Ui_MainWindow(QMainWindow):
   BACKGROUND_COLOR = QtGui.QColor('lightgrey')
+  VIEWPORT_MARGIN = 25
 
   # setting default pxamount (used for menu navigation) and pen color/width
   px_amount = 0.2
@@ -60,7 +61,8 @@ class Ui_MainWindow(QMainWindow):
     super().__init__()
     # world know how to draw shapes and contains a real world window (that knows how to move/zoom).
     self.world = world
-    self.viewport = Viewport(0, 0, 400, 400)
+    margin = Ui_MainWindow.VIEWPORT_MARGIN
+    self.viewport = Viewport(margin, margin, 400-margin, 400-margin)
 
   # draws all objects stored in the process and prints the windows dimensions
   def refresh(self):
@@ -68,7 +70,19 @@ class Ui_MainWindow(QMainWindow):
     self.log("New Window dimensions:", 'green', True)
     self.log("Window: {}".format(self.world.window))
     self.world.draw_shapes(self.draw_world_line)
+    self.draw_viewport_box()
     self.view_port_label.update()
+
+  def draw_viewport_box(self):
+    # corners
+    a = Point(self.viewport.x_min, self.viewport.y_min)
+    b = Point(self.viewport.x_min, self.viewport.y_max)
+    c = Point(self.viewport.x_max, self.viewport.y_max)
+    d = Point(self.viewport.x_max, self.viewport.y_min)
+    self.draw_viewport_line(a, b)
+    self.draw_viewport_line(b, c)
+    self.draw_viewport_line(c, d)
+    self.draw_viewport_line(d, a)
 
   # initialize all GUI components
   def setup_ui(self, MainWindow):
@@ -283,6 +297,7 @@ class Ui_MainWindow(QMainWindow):
     QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
   # translates ui components
+
   def retranslate_ui(self, MainWindow):
     _translate = QtCore.QCoreApplication.translate
     MainWindow.setWindowTitle(_translate(
