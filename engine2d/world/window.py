@@ -25,12 +25,10 @@ class Window(Box):
 
   def transform(self, matrix: numpy.matrix) -> Window:
     new_window = Window(self.x_min, self.y_min, self.x_max, self.y_max)
-    print(matrix)
-    print(new_window.up, new_window.right)
-    new_window.up = new_window.up.transform(matrix)
-    print(new_window.up)
-    new_window.right = new_window.right.transform(matrix)
-    print(new_window.right)
+
+    new_window.up = self.up.transform(matrix)
+    new_window.right = self.right.transform(matrix)
+
     return new_window
 
   # world to normalized coordinates system transform
