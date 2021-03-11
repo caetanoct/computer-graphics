@@ -39,7 +39,9 @@ class World:
       if self.window.is_point_inside(normalized_shape):
         draw_line(normalized_shape, normalized_shape)
     if type(normalized_shape) == Line:
-      draw_line(normalized_shape.begin, normalized_shape.end)
+      clipped_line = self.window.clip_line(normalized_shape)
+      if clipped_line is not None:
+        draw_line(clipped_line.begin, clipped_line.end)
     if type(normalized_shape) == Polygon:
       for line in normalized_shape.edges():
         draw_line(line.begin, line.end)

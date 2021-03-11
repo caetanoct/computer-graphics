@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Optional
 import numpy
 
 
@@ -132,3 +132,15 @@ class Box:
     inside_horizontal = self.x_min < p.x and p.x < self.x_max
     inside_vertical = self.y_min < p.y and p.y < self.y_max
     return inside_horizontal and inside_vertical
+
+  def clip_line(self, line: Line) -> Optional[Line]:
+    # TODO: this is not correctly implemented, it's just a stub
+
+    # is line totally outside
+    if (not self.is_point_inside(line.begin)) and (not self.is_point_inside(line.end)):
+      return None
+    # is line partially outside
+    # return altered_line
+
+    # else is line totally inside
+    return line
