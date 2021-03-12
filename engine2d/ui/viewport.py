@@ -52,6 +52,7 @@ class Ui_MainWindow(QMainWindow):
   pen_width = 3
   # set default drawing color to red
   color = QtGui.QColor('red')
+  fill_color = QtGui.QColor('blue')
 
   def __init__(self, world: World):
     super().__init__()
@@ -65,7 +66,7 @@ class Ui_MainWindow(QMainWindow):
     self.clear_canvas()
     self.log("New Window dimensions:", 'green', True)
     self.log("Window: {}".format(self.world.window))
-    self.world.draw_shapes(self.draw_world_line)
+    self.world.draw_shapes(self.draw_world_line, self.fill_world_polygon)
     self.view_port_label.update()
 
   # initialize all GUI components
@@ -373,7 +374,26 @@ class Ui_MainWindow(QMainWindow):
         window_to_viewport(end, self.world.window, self.viewport),
     )
 
+  def fill_world_polygon(self, polygon: Polygon):
+    viewport_polygon = Polygon(
+        *[window_to_viewport(p, self.world.window, self.viewport) for p in polygon.points])
+    path = self.transform_polygon_to_path(viewport_polygon)
+
+    painter = QtGui.QPainter(self.view_port_label.pixmap())
+    painter.fillPath(path, self.fill_color)  # , QtGui.QBrush("blue"))
+    painter.end()
+
+  def transform_polygon_to_path(self, polygon: Polygon) -> QtGui.QPainterPath:
+
+    path = QtGui.QPainterPath()
+    for i, p in enumerate(polygon.points):
+      if i == 0:
+        path.moveTo(p.x, p.y)
+      else:
+        path.lineTo(p.x, p.y)
+    return path
   # transforms user input data from the dialog (defined in input_dialog.py) to viewport coords and calls drawline funtion
+
   def use_dialog_data_line(self, values):
     line = Line(Point(int(values['x1']), int(values['y1'])), Point(
         int(values['x2']), int(values['y2'])))
@@ -434,7 +454,7 @@ class Ui_MainWindow(QMainWindow):
       index = string[0]
       obj = self.world.shapes[int(index)]
       self.clear_canvas()
-      self.world.draw_shape(obj, self.draw_world_line)
+      self.world.draw_shape(obj, self.draw_world_line, self.fill_world_polygon)
       self.view_port_label.update()
 
   # handles select color action

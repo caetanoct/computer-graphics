@@ -433,14 +433,11 @@ def cohen_sutherland_line_clipping(window, line: Line) -> Optional[Line]:
 
 
 def sutherland_hodgeman_polygon_clipping(window, polygon: Polygon) -> Optional[Polygon]:
-  print("clipping polygon {}".format(polygon))
-
   def clip_side(polygon: Polygon, axis: InfiniteLine, check_inside):
     new_points = []
     for edge in polygon.edges():
       a, b = edge.begin, edge.end
       a_in, b_in = check_inside(a), check_inside(b)
-      print("clipping edge a: {} {} . b: {} {}".format(a, a_in, b, b_in))
       if a_in and b_in:
         new_points.extend([a, b])
       if a_in and not b_in:

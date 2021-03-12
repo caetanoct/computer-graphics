@@ -104,6 +104,7 @@ class InfiniteLine:
     self.b = b
     self.c = c
 
+  # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Using_homogeneous_coordinates
   def intersection(self, line_segment: Line):
     a1 = self.a
     b1 = self.b
@@ -116,7 +117,6 @@ class InfiniteLine:
       a2 = 1
       b2 = 0
       c2 = -line_segment.vertical_intersection(0).x
-    print((a1, b1, c1), (a2, b2, c2))
     ap, bp, cp = (b1*c2 - b2*c1, a2*c1 - a1*c2, a1*b2 - a2*b1)
     if cp == 0:
       return None

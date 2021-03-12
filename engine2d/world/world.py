@@ -21,19 +21,21 @@ class World:
           Point(0, 0),
           Point(0, 0.1),
           Point(0.1, 0.1),
-          # Line(Point(0.5, 0.5), Point(0.9, 0.9)),
-          # Line(Point(2, 2), Point(-2, -2)),
-          # Line(Point(2, -2), Point(-2, 2)),
-          # Line(Point(2, 0), Point(-2, 0)),
-          # Line(Point(-2, 0), Point(2, 0)),
-          # Line(Point(0, 2), Point(0, -2)),
-          # Line(Point(0, -2), Point(0, 2)),
-          # Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
-          # Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
-          # Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
-          # Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
+          Line(Point(0.5, 0.5), Point(0.9, 0.9)),
+          Line(Point(2, 2), Point(-2, -2)),
+          Line(Point(2, -2), Point(-2, 2)),
+          Line(Point(2, 0), Point(-2, 0)),
+          Line(Point(-2, 0), Point(2, 0)),
+          Line(Point(0, 2), Point(0, -2)),
+          Line(Point(0, -2), Point(0, 2)),
+          Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
+          Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
+          Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
+          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
           Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
-                  Point(-0.6, -0.6), Point(-0.6, -0.3))
+                  Point(-0.6, -0.6), Point(-0.6, -0.3)),
+          Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
+                  Point(0.2, 0.4), Point(0, 0.4))
       ]
     else:
       self.shapes = shapes
@@ -41,7 +43,7 @@ class World:
     self.shapes.append(self.window)
 
   # draws a single shape
-  def draw_shape(self, shape, draw_line):
+  def draw_shape(self, shape, draw_line, fill_world_polygon):
     # print("Drawing shape {}".format(shape))
     normalized_shape = self.normalize_shape(shape)
     # print("Drawing shape[normalized] {}".format(normalized_shape))
@@ -54,8 +56,7 @@ class World:
         draw_line(clipped_line.begin, clipped_line.end)
     if type(normalized_shape) == Polygon:
       clipped_polygon = self.window.clip_polygon(normalized_shape)
-      for line in clipped_polygon.edges():
-        draw_line(line.begin, line.end)
+      fill_world_polygon(clipped_polygon)
     if type(normalized_shape) == Window:
       a = Point(self.window.x_min, self.window.y_min)
       b = Point(self.window.x_min, self.window.y_max)
@@ -67,9 +68,9 @@ class World:
       draw_line(d, a)
 
   # draws all shapes in the list of shapes
-  def draw_shapes(self, draw_line):
+  def draw_shapes(self, draw_line, fill_world_polygon):
     for shape in self.shapes:
-      self.draw_shape(shape, draw_line)
+      self.draw_shape(shape, draw_line, fill_world_polygon)
 
   # normalized display file
   def normalize_shape(self, shape: Shape) -> Shape:
