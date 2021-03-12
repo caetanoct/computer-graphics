@@ -37,7 +37,7 @@ def window_to_viewport(point: Point, w: Window, vp: Viewport) -> Point:
   new_x = vp.x_min + (point.x - w.x_min) * scale_x
 
   scale_y = vp.height() / w.height()
-  new_y = vp.y_min + (1-((point.y - w.y_min))) * scale_y
+  new_y = vp.y_min + (w.height() - (point.y - w.y_min)) * scale_y
 
   return Point(x=new_x, y=new_y)
 
