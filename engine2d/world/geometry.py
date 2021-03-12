@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Union, Optional
 import numpy
+import math
 
 
 # rotate(circular-shift) a list, by "n" steps
@@ -94,7 +95,36 @@ class Polygon:
     return all(a == b for (a, b) in zip(self.points, other.points))
 
 
+class InfiniteLine:
+  # line of the format
+  # a*x + b*y + c = 0
+  # this allows us to represent infinite lines, both vertically and horizontally
+  def __init__(self, a, b, c):
+    self.a = a
+    self.b = b
+    self.c = c
+
+  def intersection(self, line_segment: Line):
+    a1 = self.a
+    b1 = self.b
+    c1 = self.c
+
+    a2 = -line_segment.angular_coefficient()
+    b2 = 1
+    c2 = -line_segment.horizontal_intersection(0).y
+    if math.isinf(a2):
+      a2 = 1
+      b2 = 0
+      c2 = -line_segment.vertical_intersection(0).x
+    print((a1, b1, c1), (a2, b2, c2))
+    ap, bp, cp = (b1*c2 - b2*c1, a2*c1 - a1*c2, a1*b2 - a2*b1)
+    if cp == 0:
+      return None
+    return Point(ap/cp, bp/cp)
+
 # data structure that rerpresents a line (two connected point), that is a 2d polygon
+
+
 class Line(Polygon):
   begin: Point
   end: Point
@@ -110,6 +140,18 @@ class Line(Polygon):
     if (deltax == 0):
       print("deltax == 0!")
     return (deltay/deltax)
+
+  def horizontal_intersection(self, x) -> Point:
+    y_intersection = self.angular_coefficient() * (x - self.begin.x) + self.begin.y
+    return Point(x, y_intersection)
+
+  def vertical_intersection(self, y) -> Point:
+    x_intersection = self.begin.x + \
+        (y - self.begin.y) / self.angular_coefficient()
+    return Point(x_intersection, y)
+
+    y_intersection = self.angular_coefficient() * (x - self.begin.x) + self.begin.y
+    return Point(x, y_intersection)
 
 
 # A shape is either a Polygon, a Line or a Point

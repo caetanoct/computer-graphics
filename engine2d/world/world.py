@@ -21,17 +21,17 @@ class World:
           Point(0, 0),
           Point(0, 0.1),
           Point(0.1, 0.1),
-          Line(Point(0.5, 0.5), Point(0.9, 0.9)),
-          Line(Point(2, 2), Point(-2, -2)),
-          Line(Point(2, -2), Point(-2, 2)),
-          Line(Point(2, 0), Point(-2, 0)),
-          Line(Point(-2, 0), Point(2, 0)),
-          Line(Point(0, 2), Point(0, -2)),
-          Line(Point(0, -2), Point(0, 2)),          
-          Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
-          Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
-          Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
-          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
+          # Line(Point(0.5, 0.5), Point(0.9, 0.9)),
+          # Line(Point(2, 2), Point(-2, -2)),
+          # Line(Point(2, -2), Point(-2, 2)),
+          # Line(Point(2, 0), Point(-2, 0)),
+          # Line(Point(-2, 0), Point(2, 0)),
+          # Line(Point(0, 2), Point(0, -2)),
+          # Line(Point(0, -2), Point(0, 2)),
+          # Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
+          # Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
+          # Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
+          # Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
           Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
                   Point(-0.6, -0.6), Point(-0.6, -0.3))
       ]
@@ -53,7 +53,8 @@ class World:
       if clipped_line is not None:
         draw_line(clipped_line.begin, clipped_line.end)
     if type(normalized_shape) == Polygon:
-      for line in normalized_shape.edges():
+      clipped_polygon = self.window.clip_polygon(normalized_shape)
+      for line in clipped_polygon.edges():
         draw_line(line.begin, line.end)
     if type(normalized_shape) == Window:
       a = Point(self.window.x_min, self.window.y_min)

@@ -433,4 +433,31 @@ def cohen_sutherland_line_clipping(window, line: Line) -> Optional[Line]:
 
 
 def sutherland_hodgeman_polygon_clipping(window, polygon: Polygon) -> Optional[Polygon]:
-  return None
+  print("clipping polygon {}".format(polygon))
+
+  def clip_side(polygon: Polygon, axis: InfiniteLine, check_inside):
+    new_points = []
+    for edge in polygon.edges():
+      a, b = edge.begin, edge.end
+      a_in, b_in = check_inside(a), check_inside(b)
+      print("clipping edge a: {} {} . b: {} {}".format(a, a_in, b, b_in))
+      if a_in and b_in:
+        new_points.extend([a, b])
+      if a_in and not b_in:
+        new_points.extend([a, axis.intersection(edge)])
+      if not a_in and b_in:
+        new_points.extend([axis.intersection(edge), b])
+      if not a_in and not b_in:
+        pass
+    return Polygon(*new_points)
+
+  polygon = clip_side(polygon, InfiniteLine(
+      1, 0, -window.x_min), lambda p: window.x_min < p.x)
+  polygon = clip_side(polygon, InfiniteLine(
+      0, 1, -window.y_min), lambda p: window.y_min < p.y)
+  polygon = clip_side(polygon, InfiniteLine(
+      1, 0, -window.x_max), lambda p: p.x < window.x_max)
+  polygon = clip_side(polygon, InfiniteLine(
+      0, 1, -window.y_max), lambda p: p.y < window.y_max)
+
+  return polygon

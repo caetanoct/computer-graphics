@@ -28,3 +28,6 @@ class Box:
 
   def clip_line(self, line: Line) -> Optional[Line]:
     return cohen_sutherland_line_clipping(self, line)
+
+  def clip_polygon(self, polygon: Polygon) -> Optional[Polygon]:
+    return sutherland_hodgeman_polygon_clipping(self, polygon)

@@ -37,6 +37,22 @@ class TestGeometry(unittest.TestCase):
     self.assertEqual(x.begin.y, a.y)
     self.assertEqual(x.end, b)
 
+  def test_line_intersection(self):
+    a = Point(10, 10)
+    b = Point(-10, 0)
+    line = Line(a, b)
+    intersection = line.horizontal_intersection(0)
+    self.assertEqual(intersection, Point(0, 5))
+    intersection = line.vertical_intersection(0)
+    self.assertEqual(intersection, Point(-10, 0))
+
+    vertical_line = InfiniteLine(1, 0, 0)
+    intersection = vertical_line.intersection(line)
+    self.assertEqual(intersection, Point(0, 5))
+    horizontal_line = InfiniteLine(0, 1, 0)
+    intersection = horizontal_line.intersection(line)
+    self.assertEqual(intersection, Point(-10, 0))
+
 
 if __name__ == '__main__':
   unittest.main()
