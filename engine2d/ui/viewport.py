@@ -17,6 +17,7 @@ import random
 import numpy
 import math
 from engine2d.ui.input_dialog import Dialog
+from engine2d.ui.drawing_context import DrawingContext
 from engine2d.world.geometry import Point, Line, Polygon
 from engine2d.world.box import Box
 from engine2d.world.window import Window
@@ -66,7 +67,8 @@ class Ui_MainWindow(QMainWindow):
     self.clear_canvas()
     self.log("New Window dimensions:", 'green', True)
     self.log("Window: {}".format(self.world.window))
-    self.world.draw_shapes(self.draw_world_line, self.fill_world_polygon)
+    self.world.draw_shapes(DrawingContext(
+        self.draw_world_line, self.fill_world_polygon))
     self.view_port_label.update()
 
   # initialize all GUI components
@@ -454,7 +456,8 @@ class Ui_MainWindow(QMainWindow):
       index = string[0]
       obj = self.world.shapes[int(index)]
       self.clear_canvas()
-      self.world.draw_shape(obj, self.draw_world_line, self.fill_world_polygon)
+      self.world.draw_shape(obj, DrawingContext(
+          self.draw_world_line, self.fill_world_polygon))
       self.view_port_label.update()
 
   # handles select color action
