@@ -447,12 +447,12 @@ class Ui_MainWindow(QMainWindow):
 
   # get user input (point list) and draw a curve in the viewport
   def action_draw_curve(self):
-    self.log("Draw Polygon Trigerred, drawing polygon after user input.")
+    self.log("Draw Curve Trigerred, drawing curve after user input.")
     button = self.sender()
     value, _ = QInputDialog.getInt(
         self, "How many points?", "amount:", 0, -2147483647, 2147483647, 1)
-    if (value <= 0):
-      self.log("Try again, value must be greater than 0.", "red")
+    if (value <= 3):
+      self.log("Try again, value must be greater than 3.", "red")
       return
     color = self.color
     points = []
@@ -465,7 +465,10 @@ class Ui_MainWindow(QMainWindow):
       y1, _ = QInputDialog.getInt(self, "Enter value of (Integer)", "y{}:".format(
           x+1), 0, -2147483647, 2147483647, 1)
       points.append(Point(x1, y1))
-    self.create_object(Polygon(*points))
+    print("creating curve")
+    curve = BezierCurve(points)
+    curve.generete_segments()
+    #self.create_object(Polygon(*points))
 
 
   # changes amount of pixels that will move on the interactive menu
