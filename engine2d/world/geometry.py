@@ -180,7 +180,7 @@ class BezierCurve():
                   [self.points[1].y],
                   [self.points[2].y],
                   [self.points[3].y]))
-    step = 0.1
+    step = 0.05
     i = 0
 
     x_1 = self.points[0].x

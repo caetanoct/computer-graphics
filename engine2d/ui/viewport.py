@@ -18,7 +18,7 @@ import numpy
 import math
 from engine2d.ui.input_dialog import Dialog
 from engine2d.ui.drawing_context import DrawingContext
-from engine2d.world.geometry import Point, Line, Polygon
+from engine2d.world.geometry import Point, Line, Polygon, BezierCurve
 from engine2d.world.box import Box
 from engine2d.world.window import Window
 from engine2d.world.world import World
@@ -366,6 +366,10 @@ class Ui_MainWindow(QMainWindow):
     pen.setWidth(self.pen_width)
     pen.setColor(QtGui.QColor(self.color))
     painter.setPen(pen)
+    curve = BezierCurve([Point(200,200),Point(200,300),Point(300,300),Point(300,200)])
+    curve.generete_segments()
+    for line in curve.lines:
+        painter.drawLine(line.begin.x, line.begin.y, line.end.x, line.end.y)    
     painter.drawLine(begin.x, begin.y, end.x, end.y)
     painter.end()
 
