@@ -228,6 +228,10 @@ class Ui_MainWindow(QMainWindow):
     self.actiondraw_polygon.setObjectName("actionDraw_Polygon")
     self.actiondraw_polygon.triggered.connect(self.action_draw_polygon)
 
+    self.actiondraw_curve = QtWidgets.QAction(MainWindow)
+    self.actiondraw_curve.setObjectName("actiondraw_curve")
+    self.actiondraw_curve.triggered.connect(self.action_draw_curve)
+
     self.actionclear = QtWidgets.QAction(MainWindow)
     self.actionclear.setObjectName("actionclear")
     self.actionclear.triggered.connect(self.clear_objects)
@@ -265,6 +269,7 @@ class Ui_MainWindow(QMainWindow):
     self.menu_insert.addAction(self.actiondraw_point)
     self.menu_insert.addAction(self.actiondraw_line)
     self.menu_insert.addAction(self.actiondraw_polygon)
+    self.menu_insert.addAction(self.actiondraw_curve)
     self.menu_insert.addAction(self.actionclear)
     self.menu_insert.addSeparator()
     self.menu_insert.addAction(self.actionselect_color_2)
@@ -307,6 +312,7 @@ class Ui_MainWindow(QMainWindow):
     self.pen_width_label.setText(_translate("MainWindow", "Pen Width"))
     self.obj_list_label.setText(_translate("MainWindow", "Object list"))
     self.actiondraw_polygon.setText(_translate("MainWindow", "Draw Polygon"))
+    self.actiondraw_curve.setText(_translate("MainWindow", "Draw Curve"))
     self.actionselect_color_2.setText(
         _translate("MainWindow", "Select Pen Color"))
     self.actionTranslation.setText(_translate("MainWindow", "Translation"))
@@ -438,6 +444,29 @@ class Ui_MainWindow(QMainWindow):
           x+1), 0, -2147483647, 2147483647, 1)
       points.append(Point(x1, y1))
     self.create_object(Polygon(*points))
+
+  # get user input (point list) and draw a curve in the viewport
+  def action_draw_curve(self):
+    self.log("Draw Polygon Trigerred, drawing polygon after user input.")
+    button = self.sender()
+    value, _ = QInputDialog.getInt(
+        self, "How many points?", "amount:", 0, -2147483647, 2147483647, 1)
+    if (value <= 0):
+      self.log("Try again, value must be greater than 0.", "red")
+      return
+    color = self.color
+    points = []
+
+    for x in range(value):
+      button = self.sender()
+      x1, _ = QInputDialog.getInt(self, "Enter value of (Integer)", "x{}:".format(
+          x+1), 0, -2147483647, 2147483647, 1)
+      button = self.sender()
+      y1, _ = QInputDialog.getInt(self, "Enter value of (Integer)", "y{}:".format(
+          x+1), 0, -2147483647, 2147483647, 1)
+      points.append(Point(x1, y1))
+    self.create_object(Polygon(*points))
+
 
   # changes amount of pixels that will move on the interactive menu
   def px_amount_changed(self):
