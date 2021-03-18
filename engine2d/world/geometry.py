@@ -153,6 +153,56 @@ class Line(Polygon):
     y_intersection = self.angular_coefficient() * (x - self.begin.x) + self.begin.y
     return Point(x, y_intersection)
 
+class BezierCurve():
+  #http://www.lapix.ufsc.br/ensino/computacao-grafica/curvas-parametricas-em-2d/
+  def __init__(self, points):
+    self.points = points
+    self.lines = []
+  def t(self, t1):
+    t2 = t1*t1
+    t3 = t2*t1
+    result = numpy.array([t3, t2, t1, 1])
+    return result
+  def generete_segments(self):
+    # product MHMHB
+    M_b = numpy.array(( 
+                  [-1, 3, -3, 1],
+                  [3, -6,  3, 0],
+                  [-3, 3,  0, 0],
+                  [1,  0,  0, 0]))
+    M_x = numpy.array(( 
+                  [self.points[0].x],
+                  [self.points[1].x],
+                  [self.points[2].x],
+                  [self.points[3].x]))
+    M_y = numpy.array(( 
+                  [self.points[0].y],
+                  [self.points[1].y],
+                  [self.points[2].y],
+                  [self.points[3].y]))
+    step = 0.1
+    i = 0
 
+    x_1 = self.points[0].x
+    y_1 = self.points[0].y
+
+    while i <= 1:
+      t = self.t(i)
+      # build lines
+      aux = numpy.dot(t, M_b)
+      x_2 = numpy.dot(aux, M_x)
+      y_2 = numpy.dot(aux, M_y)
+      x_2 = float(x_2)
+      y_2 = float(y_2)      
+      self.lines.append(Line(Point(x_1,y_1),Point(x_2,y_2)))
+      x_1 = x_2
+      y_1 = y_2
+      i += step
+    x_end = self.points[3].x
+    y_end = self.points[3].y
+    self.lines.append(Line(Point(x_1,y_1),Point(x_end,y_end)))
+    print(len(self.lines))
+    for line in self.lines:
+      print(line)
 # A shape is either a Polygon, a Line or a Point
 Shape = Union[Polygon, Line, Point]

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from engine2d.world.geometry import Shape, Point, Line, Polygon
+from engine2d.world.geometry import Shape, Point, Line, Polygon, BezierCurve
 from engine2d.world.window import Window
 from engine2d.ui.drawing_context import DrawingContext
 
@@ -18,6 +18,10 @@ class World:
 
   def __init__(self, shapes):
     if len(shapes) == 0:
+      # same as https://www.desmos.com/calculator/d1ofwre0fr
+      curve = BezierCurve([Point(1,0),Point(1,1),Point(0,1),Point(0,0)])
+      curve.generete_segments()
+
       self.shapes = [
           Point(0, 0),
           Point(0, 0.1),
@@ -35,7 +39,7 @@ class World:
           Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
           Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
                   Point(-0.6, -0.6), Point(-0.6, -0.3)),
-          Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
+          Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),          
                   Point(0.2, 0.4), Point(0, 0.4))
       ]
     else:

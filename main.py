@@ -3,10 +3,11 @@ from PyQt5.QtWidgets import QApplication
 import sys
 from engine2d.ui.viewport import Ui_MainWindow
 from engine2d.world.world import World
+from engine2d.world.geometry import BezierCurve, Point,Line
 from engine2d.world.transformations import rotation_matrix
 
 if __name__ == "__main__":
-  import sys
+  import sys   
   app = QtWidgets.QApplication(sys.argv)
   MainWindow = QtWidgets.QMainWindow()
   world = World([])
