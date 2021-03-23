@@ -200,9 +200,85 @@ class BezierCurve():
       i += step
     x_end = self.points[3].x
     y_end = self.points[3].y
-    self.lines.append(Line(Point(x_1,y_1),Point(x_end,y_end)))
-    print(len(self.lines))
-    for line in self.lines:
-      print(line)
+    self.lines.append(Line(Point(x_1,y_1),Point(x_end,y_end)))    
+
+class B_SplineCurve():
+  def __init__(self, points):
+    self.points = points
+    self.lines = []
+  def generete_segments(self):
+    Mbs = numpy.array((
+            [-1, 3, -3, 1],
+            [ 3,-6,  3, 0],
+            [-3, 0,  3, 0],
+            [ 1, 4,  1, 0]))
+    Mbs = Mbs/6
+    
+    i = 3
+    a = 0.01
+    b = a*a
+    c = b*a
+
+    Md = numpy.array(( 
+            [  0 ,  0  ,   0 ,   1],
+            [c, b, a , 0  ],
+            [6*c, 2*b, 0,  0],
+            [6*c,   0,   0,   0],))
+    while i < len(self.points):
+      Gx = numpy.array((
+              [self.points[i-3].x],
+              [self.points[i-2].x],
+              [self.points[i-1].x],
+              [self.points[i  ].x]))
+      Gy = numpy.array(( 
+              [self.points[i-3].y],
+              [self.points[i-2].y],
+              [self.points[i-1].y],
+              [self.points[i  ].y])) 
+
+      cx = numpy.dot(Mbs, Gx)
+      cy = numpy.dot(Mbs, Gy)
+      dx = numpy.dot(Md, cx)
+      dy = numpy.dot(Md, cy)
+
+      # j+= a, in loop
+      j = 0
+
+      x_prev = dx[0]
+      d_x_1 = dx[1]
+      d_x_2 = dx[2]
+      d_x_3 = dx[3]
+      y_prev = dy[0]
+      d_y_1 = dy[1]
+      d_y_2 = dy[2]
+      d_y_3 = dy[3]
+
+      x = x_prev
+      y = y_prev
+
+      while j < 1.0:
+
+        j += a
+
+        x = x + d_x_1
+        d_x_1 = d_x_1 + d_x_2
+        d_x_2 = d_x_2 + d_x_3
+
+        y = y + d_y_1
+        d_y_1 = d_y_1 + d_y_2
+        d_y_2 = d_y_2 + d_y_3
+
+        x_prev = float(x_prev)
+        y_prev = float(y_prev)
+
+        x = float(x)
+        y = float(y)
+
+        self.lines.append(Line(Point(x_prev, y_prev), Point(x, y)))
+
+        x_prev = x
+        y_prev = y
+        
+      i += 1    
 # A shape is either a Polygon, a Line or a Point
 Shape = Union[Polygon, Line, Point]

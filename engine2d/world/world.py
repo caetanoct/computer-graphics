@@ -19,8 +19,8 @@ class World:
   def __init__(self, shapes):
     if len(shapes) == 0:
       # same as https://www.desmos.com/calculator/d1ofwre0fr
-      curve = BezierCurve([Point(1,0),Point(1,1),Point(0,1),Point(0,0)])
-      curve.generete_segments()
+      #curve = BezierCurve([Point(1,0),Point(1,1),Point(0,1),Point(0,0)])
+      #curve.generete_segments()
 
       self.shapes = [
           Point(0, 0),
