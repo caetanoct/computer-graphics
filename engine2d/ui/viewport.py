@@ -444,6 +444,8 @@ class Ui_MainWindow(QMainWindow):
   # get user input (point list) and draw a curve in the viewport
   def action_draw_curve(self):
     self.log("Draw Curve Trigerred, drawing curve after user input.")
+    opt,_ = QInputDialog.getInt(self, "0 = Bezier || 1 = B-splines","Curve type (0 or 1):")
+    print(opt)    
     button = self.sender()
     value, _ = QInputDialog.getInt(
         self, "How many points?", "amount:", 0, -2147483647, 2147483647, 1)
@@ -461,8 +463,13 @@ class Ui_MainWindow(QMainWindow):
       y1, _ = QInputDialog.getInt(self, "Enter value of (Integer)", "y{}:".format(
           x+1), 0, -2147483647, 2147483647, 1)
       points.append(Point(x1, y1))
-    #print("creating curve")
-    #curve = BezierCurve(points)
+    print("creating curve")
+    if opt == 1:
+        curve = B_SplineCurve(points)
+    elif opt == 0:
+        curve = BezierCurve(points)
+    else:
+        print("invalid number")
 
   # changes amount of pixels that will move on the interactive menu
 
