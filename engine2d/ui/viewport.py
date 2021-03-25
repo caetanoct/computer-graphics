@@ -372,12 +372,6 @@ class Ui_MainWindow(QMainWindow):
     pen.setWidth(self.pen_width)
     pen.setColor(QtGui.QColor(self.color))
     painter.setPen(pen)
-    #curve = BezierCurve([Point(200,200),Point(200,300),Point(300,300),Point(300,200)])
-    #curve.generete_segments()
-    curve2 = B_SplineCurve([Point(50,200),Point(100,200),Point(200,50),Point(300,200),Point(350,200)])
-    curve2.generete_segments()
-    for line in curve2.lines:
-        painter.drawLine(line.begin.x, line.begin.y, line.end.x, line.end.y)    
     painter.drawLine(begin.x, begin.y, end.x, end.y)
     painter.end()
 
@@ -469,11 +463,9 @@ class Ui_MainWindow(QMainWindow):
       points.append(Point(x1, y1))
     #print("creating curve")
     #curve = BezierCurve(points)
-    #curve.generete_segments()
-    #self.create_object(Polygon(*points))
-
 
   # changes amount of pixels that will move on the interactive menu
+
   def px_amount_changed(self):
     value = self.px_amount_spin_box.value()
     print("New pxAmount:", value)

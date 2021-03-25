@@ -153,38 +153,51 @@ class Line(Polygon):
     y_intersection = self.angular_coefficient() * (x - self.begin.x) + self.begin.y
     return Point(x, y_intersection)
 
+
 class BezierCurve():
-  #http://www.lapix.ufsc.br/ensino/computacao-grafica/curvas-parametricas-em-2d/
-  def __init__(self, points):
-    self.points = points
-    self.lines = []
+  # http://www.lapix.ufsc.br/ensino/computacao-grafica/curvas-parametricas-em-2d/
+  def __init__(self, control_points):
+    self.control_points = control_points
+
   def t(self, t1):
     t2 = t1*t1
     t3 = t2*t1
     result = numpy.array([t3, t2, t1, 1])
     return result
-  def generete_segments(self):
+
+  # applies a matrix to the points of the polygon and returns a new Curve
+  def transform(self, matrix: numpy.matrix):
+    return self.__class__(
+        [point.transform(matrix) for point in self.control_points])
+
+  # TODO: implement center method
+  def center(self):
+    return Point(0, 0)
+
+  def generate_segments(self):
     # product MHMHB
-    M_b = numpy.array(( 
-                  [-1, 3, -3, 1],
-                  [3, -6,  3, 0],
-                  [-3, 3,  0, 0],
-                  [1,  0,  0, 0]))
-    M_x = numpy.array(( 
-                  [self.points[0].x],
-                  [self.points[1].x],
-                  [self.points[2].x],
-                  [self.points[3].x]))
-    M_y = numpy.array(( 
-                  [self.points[0].y],
-                  [self.points[1].y],
-                  [self.points[2].y],
-                  [self.points[3].y]))
+    segments = []
+    cp = self.control_points
+    M_b = numpy.array((
+        [-1, 3, -3, 1],
+        [3, -6,  3, 0],
+        [-3, 3,  0, 0],
+        [1,  0,  0, 0]))
+    M_x = numpy.array((
+        [cp[0].x],
+        [cp[1].x],
+        [cp[2].x],
+        [cp[3].x]))
+    M_y = numpy.array((
+        [cp[0].y],
+        [cp[1].y],
+        [cp[2].y],
+        [cp[3].y]))
     step = 0.05
     i = 0
 
-    x_1 = self.points[0].x
-    y_1 = self.points[0].y
+    x_1 = cp[0].x
+    y_1 = cp[0].y
 
     while i <= 1:
       t = self.t(i)
@@ -193,48 +206,60 @@ class BezierCurve():
       x_2 = numpy.dot(aux, M_x)
       y_2 = numpy.dot(aux, M_y)
       x_2 = float(x_2)
-      y_2 = float(y_2)      
-      self.lines.append(Line(Point(x_1,y_1),Point(x_2,y_2)))
+      y_2 = float(y_2)
+      segments.append(Line(Point(x_1, y_1), Point(x_2, y_2)))
       x_1 = x_2
       y_1 = y_2
       i += step
-    x_end = self.points[3].x
-    y_end = self.points[3].y
-    self.lines.append(Line(Point(x_1,y_1),Point(x_end,y_end)))    
+    x_end = cp[3].x
+    y_end = cp[3].y
+    segments.append(Line(Point(x_1, y_1), Point(x_end, y_end)))
+    return segments
+
 
 class B_SplineCurve():
-  def __init__(self, points):
-    self.points = points
-    self.lines = []
-  def generete_segments(self):
+  def __init__(self, control_points):
+    self.control_points = control_points
+
+  # applies a matrix to the points of the polygon and returns a new Curve
+  def transform(self, matrix: numpy.matrix):
+    return self.__class__(
+        [point.transform(matrix) for point in self.control_points])
+
+  # TODO: implement center method
+  def center(self):
+    return Point(0, 0)
+
+  def generate_segments(self):
+    segments = []
     Mbs = numpy.array((
-            [-1, 3, -3, 1],
-            [ 3,-6,  3, 0],
-            [-3, 0,  3, 0],
-            [ 1, 4,  1, 0]))
+        [-1, 3, -3, 1],
+        [3, -6,  3, 0],
+        [-3, 0,  3, 0],
+        [1, 4,  1, 0]))
     Mbs = Mbs/6
-    
+
     i = 3
     a = 0.01
     b = a*a
     c = b*a
 
-    Md = numpy.array(( 
-            [  0 ,  0  ,   0 ,   1],
-            [c, b, a , 0  ],
-            [6*c, 2*b, 0,  0],
-            [6*c,   0,   0,   0],))
-    while i < len(self.points):
+    Md = numpy.array((
+        [0,  0,   0,   1],
+        [c, b, a, 0],
+        [6*c, 2*b, 0,  0],
+        [6*c,   0,   0,   0],))
+    while i < len(self.control_points):
       Gx = numpy.array((
-              [self.points[i-3].x],
-              [self.points[i-2].x],
-              [self.points[i-1].x],
-              [self.points[i  ].x]))
-      Gy = numpy.array(( 
-              [self.points[i-3].y],
-              [self.points[i-2].y],
-              [self.points[i-1].y],
-              [self.points[i  ].y])) 
+          [self.control_points[i-3].x],
+          [self.control_points[i-2].x],
+          [self.control_points[i-1].x],
+          [self.control_points[i].x]))
+      Gy = numpy.array((
+          [self.control_points[i-3].y],
+          [self.control_points[i-2].y],
+          [self.control_points[i-1].y],
+          [self.control_points[i].y]))
 
       cx = numpy.dot(Mbs, Gx)
       cy = numpy.dot(Mbs, Gy)
@@ -274,11 +299,14 @@ class B_SplineCurve():
         x = float(x)
         y = float(y)
 
-        self.lines.append(Line(Point(x_prev, y_prev), Point(x, y)))
+        segments.append(Line(Point(x_prev, y_prev), Point(x, y)))
 
         x_prev = x
         y_prev = y
-        
-      i += 1    
+
+      i += 1
+    return segments
+
+
 # A shape is either a Polygon, a Line or a Point
 Shape = Union[Polygon, Line, Point]

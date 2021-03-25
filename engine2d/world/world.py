@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from engine2d.world.geometry import Shape, Point, Line, Polygon, BezierCurve
+from engine2d.world.geometry import Shape, Point, Line, Polygon, BezierCurve, B_SplineCurve
 from engine2d.world.window import Window
 from engine2d.ui.drawing_context import DrawingContext
 
@@ -18,29 +18,29 @@ class World:
 
   def __init__(self, shapes):
     if len(shapes) == 0:
-      # same as https://www.desmos.com/calculator/d1ofwre0fr
-      #curve = BezierCurve([Point(1,0),Point(1,1),Point(0,1),Point(0,0)])
-      #curve.generete_segments()
-
       self.shapes = [
-          Point(0, 0),
-          Point(0, 0.1),
-          Point(0.1, 0.1),
-          Line(Point(0.5, 0.5), Point(0.9, 0.9)),
-          Line(Point(2, 2), Point(-2, -2)),
-          Line(Point(2, -2), Point(-2, 2)),
-          Line(Point(2, 0), Point(-2, 0)),
-          Line(Point(-2, 0), Point(2, 0)),
-          Line(Point(0, 2), Point(0, -2)),
-          Line(Point(0, -2), Point(0, 2)),
-          Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
-          Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
-          Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
-          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
-          Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
-                  Point(-0.6, -0.6), Point(-0.6, -0.3)),
-          Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),          
-                  Point(0.2, 0.4), Point(0, 0.4))
+          # Point(0, 0),
+          # Point(0, 0.1),
+          # Point(0.1, 0.1),
+          # Line(Point(0.5, 0.5), Point(0.9, 0.9)),
+          # Line(Point(2, 2), Point(-2, -2)),
+          # Line(Point(2, -2), Point(-2, 2)),
+          # Line(Point(2, 0), Point(-2, 0)),
+          # Line(Point(-2, 0), Point(2, 0)),
+          # Line(Point(0, 2), Point(0, -2)),
+          # Line(Point(0, -2), Point(0, 2)),
+          # Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
+          # Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
+          # Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
+          # Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
+          # Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
+          #         Point(-0.6, -0.6), Point(-0.6, -0.3)),
+          # Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
+          #         Point(0.2, 0.4), Point(0, 0.4)),
+          BezierCurve([Point(0.2, 0.2), Point(0.2, 0.3),
+                       Point(0.3, 0.3), Point(0.3, 0.2)]),
+          B_SplineCurve([Point(0.05, 0.2), Point(0.1, 0.2), Point(
+              0.2, 0.5), Point(0.3, 0.2), Point(0.35, 0.2)])
       ]
     else:
       self.shapes = shapes
@@ -71,6 +71,10 @@ class World:
       drawing_context.draw_line(b, c)
       drawing_context.draw_line(c, d)
       drawing_context.draw_line(d, a)
+    if type(normalized_shape) == B_SplineCurve or type(normalized_shape) == BezierCurve:
+      curve = normalized_shape
+      for line in curve.generate_segments():
+        self.draw_shape(line, drawing_context)
 
   # draws all shapes in the list of shapes
   def draw_shapes(self, drawing_context: DrawingContext):
