@@ -50,6 +50,9 @@ class Point(numpy.ndarray):
   def abs(self):
     return numpy.linalg.norm(self)
 
+  def obj_string(self):
+    return "v {} {} 0".format(self.x, self.y)
+
 # it's the same as a Point, but has different semantics(meaning)
 
 
@@ -62,7 +65,13 @@ class Line:
   pass
 
 
+def lines_obj_string(points):
+  points_str = '\n'.join(point.obj_string() for point in points)
+  return points_str + '\nf ' + ' '.join([str(n) for n in range(-len(points), 0)])
+
 # data structure that represents a Polygon (list of connected points)
+
+
 class Polygon:
   points: List[Point]
 
@@ -93,6 +102,9 @@ class Polygon:
 
   def __eq__(self, other):
     return all(a == b for (a, b) in zip(self.points, other.points))
+
+  def obj_string(self):
+    return lines_obj_string(self.points)
 
 
 class InfiniteLine:
@@ -154,18 +166,11 @@ class Line(Polygon):
     return Point(x, y_intersection)
 
 
-class BezierCurve():
-  # http://www.lapix.ufsc.br/ensino/computacao-grafica/curvas-parametricas-em-2d/
+class Curve():
   def __init__(self, control_points):
     self.control_points = control_points
+  # applies a matrix to the control points of the Curve and returns a new Curve
 
-  def t(self, t1):
-    t2 = t1*t1
-    t3 = t2*t1
-    result = numpy.array([t3, t2, t1, 1])
-    return result
-
-  # applies a matrix to the points of the polygon and returns a new Curve
   def transform(self, matrix: numpy.matrix):
     return self.__class__(
         [point.transform(matrix) for point in self.control_points])
@@ -173,6 +178,19 @@ class BezierCurve():
   # TODO: implement center method
   def center(self):
     return Point(0, 0)
+
+  def obj_string(self):
+    return lines_obj_string([line.begin for line in self.generate_segments()])
+
+# http://www.lapix.ufsc.br/ensino/computacao-grafica/curvas-parametricas-em-2d/
+
+
+class BezierCurve(Curve):
+  def t(self, t1):
+    t2 = t1*t1
+    t3 = t2*t1
+    result = numpy.array([t3, t2, t1, 1])
+    return result
 
   def generate_segments(self):
     # product MHMHB
@@ -217,19 +235,7 @@ class BezierCurve():
     return segments
 
 
-class B_SplineCurve():
-  def __init__(self, control_points):
-    self.control_points = control_points
-
-  # applies a matrix to the points of the polygon and returns a new Curve
-  def transform(self, matrix: numpy.matrix):
-    return self.__class__(
-        [point.transform(matrix) for point in self.control_points])
-
-  # TODO: implement center method
-  def center(self):
-    return Point(0, 0)
-
+class B_SplineCurve(Curve):
   def generate_segments(self):
     segments = []
     Mbs = numpy.array((

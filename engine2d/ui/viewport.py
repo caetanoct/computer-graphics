@@ -470,6 +470,7 @@ class Ui_MainWindow(QMainWindow):
         curve = BezierCurve(points)
     else:
         print("invalid number")
+    self.create_object(curve)
 
   # changes amount of pixels that will move on the interactive menu
 

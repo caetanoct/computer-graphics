@@ -21,7 +21,7 @@ class World:
       self.shapes = [
           # Point(0, 0),
           # Point(0, 0.1),
-          # Point(0.1, 0.1),
+          Point(0.1, 0.1),
           # Line(Point(0.5, 0.5), Point(0.9, 0.9)),
           # Line(Point(2, 2), Point(-2, -2)),
           # Line(Point(2, -2), Point(-2, 2)),
@@ -32,9 +32,9 @@ class World:
           # Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
           # Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
           # Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
-          # Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
-          # Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
-          #         Point(-0.6, -0.6), Point(-0.6, -0.3)),
+          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
+          Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
+                  Point(-0.6, -0.6), Point(-0.6, -0.3)),
           # Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
           #         Point(0.2, 0.4), Point(0, 0.4)),
           BezierCurve([Point(0.2, 0.2), Point(0.2, 0.3),
@@ -44,14 +44,11 @@ class World:
       ]
     else:
       self.shapes = shapes
-
     self.shapes.append(self.window)
 
   # draws a single shape
   def draw_shape(self, shape, drawing_context: DrawingContext):
-    # print("Drawing shape {}".format(shape))
     normalized_shape = self.normalize_shape(shape)
-    # print("Drawing shape[normalized] {}".format(normalized_shape))
     if type(normalized_shape) == Point:
       if self.window.is_point_inside(normalized_shape):
         drawing_context.draw_line(normalized_shape, normalized_shape)
@@ -80,7 +77,39 @@ class World:
   def draw_shapes(self, drawing_context: DrawingContext):
     for shape in self.shapes:
       self.draw_shape(shape, drawing_context)
+    # self.generate_obj_file()
 
   # normalized display file
   def normalize_shape(self, shape: Shape) -> Shape:
     return shape.transform(self.window.world_to_ndc_matrix())
+
+  def generate_obj_file(self, file_name='sample.obj'):
+    content = ""
+    with open(file_name, 'w') as f:
+      for shape in self.shapes:
+        if hasattr(shape, 'obj_string'):
+          f.write(shape.obj_string() + '\n')
+
+  def import_scene(self, obj_file_location):
+    obj_file_content = open(obj_file_location).read()
+    print(obj_file_content)
+    removed_comments = [line.strip('\n').split('#')[0]
+                        for line in obj_file_content.split('\n')]
+    filtered_empty_lines = [
+        line for line in removed_comments if len(line.strip()) > 0]
+
+    vertices = []
+    faces = []
+    for line in filtered_empty_lines:
+      if line[0] == 'v':
+        x, y, _z = line.strip('v ').split(' ')
+        vertices.append(Point(float(x), float(y)))
+      if line[0] == 'f':
+        indexes = line.strip('f ').split(' ')
+        try:
+          faces.append([vertices[int(i)] for i in indexes])
+        except:
+          raise Exception("invalid/not supported obj file")
+
+    for face in faces:
+      self.shapes.append(Polygon(*face))
