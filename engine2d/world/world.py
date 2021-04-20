@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from engine2d.world.geometry import Shape, Point, Line, Polygon, BezierCurve, B_SplineCurve
+from engine2d.world.geometry import Shape, Point, Line, Polygon, Wireframe, BezierCurve, B_SplineCurve
 from engine2d.world.window import Window
 from engine2d.ui.drawing_context import DrawingContext
 
@@ -21,7 +21,7 @@ class World:
       self.shapes = [
           # Point(0, 0),
           # Point(0, 0.1),
-          Point(0.1, 0.1),
+          # Point(0.1, 0.1),
           # Line(Point(0.5, 0.5), Point(0.9, 0.9)),
           # Line(Point(2, 2), Point(-2, -2)),
           # Line(Point(2, -2), Point(-2, 2)),
@@ -32,15 +32,19 @@ class World:
           # Line(Point(0.3, 0.3), Point(-0.3, -0.3)),
           # Line(Point(-0.3, -0.3), Point(0.3, 0.3)),
           # Line(Point(-0.3, 0.3), Point(0.3, -0.3)),
-          Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
-          Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
-                  Point(-0.6, -0.6), Point(-0.6, -0.3)),
-          # Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
-          #         Point(0.2, 0.4), Point(0, 0.4)),
-          BezierCurve([Point(0.2, 0.2), Point(0.2, 0.3),
-                       Point(0.3, 0.3), Point(0.3, 0.2)]),
-          B_SplineCurve([Point(0.05, 0.2), Point(0.1, 0.2), Point(
-              0.2, 0.5), Point(0.3, 0.2), Point(0.35, 0.2)])
+          # Line(Point(0.3, -0.3), Point(-0.3, 0.3)),
+          # Polygon(Point(0, 0, 0), Point(0.1, 0.1, 0.1),
+          #         Point(0.1, 0.0, 0.1), Point(0.1, 0.0, 0.0),
+          #         )
+          Wireframe.build_cube(Point(0.1, 0, 0), 0.2)
+          # Polygon(Point(-0.3, -0.3), Point(-0.3, -0.6),
+          #         Point(-0.6, -0.6), Point(-0.6, -0.3)),
+          # # Polygon(Point(0, 0), Point(0.2, 0), Point(0.1, 0.2),
+          # #         Point(0.2, 0.4), Point(0, 0.4)),
+          # BezierCurve([Point(0.2, 0.2), Point(0.2, 0.3),
+          #              Point(0.3, 0.3), Point(0.3, 0.2)]),
+          # B_SplineCurve([Point(0.05, 0.2), Point(0.1, 0.2), Point(
+          #     0.2, 0.5), Point(0.3, 0.2), Point(0.35, 0.2)])
       ]
     else:
       self.shapes = shapes
@@ -48,6 +52,10 @@ class World:
 
   # draws a single shape
   def draw_shape(self, shape, drawing_context: DrawingContext):
+    if shape.dimension > 2:
+      for line in self.window.project(shape):
+        self.draw_shape(line, drawing_context)
+      return
     normalized_shape = self.normalize_shape(shape)
     if type(normalized_shape) == Point:
       if self.window.is_point_inside(normalized_shape):
@@ -58,12 +66,14 @@ class World:
         drawing_context.draw_line(clipped_line.begin, clipped_line.end)
     if type(normalized_shape) == Polygon:
       clipped_polygon = self.window.clip_polygon(normalized_shape)
-      drawing_context.fill_polygon(clipped_polygon)
+      for line in clipped_polygon.edges():
+        drawing_context.draw_line(line.begin, line.end)
+      # drawing_context.fill_polygon(clipped_polygon)
     if type(normalized_shape) == Window:
-      a = Point(self.window.x_min, self.window.y_min)
-      b = Point(self.window.x_min, self.window.y_max)
-      c = Point(self.window.x_max, self.window.y_max)
-      d = Point(self.window.x_max, self.window.y_min)
+      a = Point(self.window.u_min, self.window.v_min)
+      b = Point(self.window.u_min, self.window.v_max)
+      c = Point(self.window.u_max, self.window.v_max)
+      d = Point(self.window.u_max, self.window.v_min)
       drawing_context.draw_line(a, b)
       drawing_context.draw_line(b, c)
       drawing_context.draw_line(c, d)

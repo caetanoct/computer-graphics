@@ -35,6 +35,15 @@ def translation_matrix(p: Point) -> np.ndarray:
       [0, 0, 1]
   ])
 
+
+def translation_matrix_3d(p: Point) -> np.ndarray:
+  return np.array([
+      [1, 0, 0, p.x],
+      [0, 1, 0, p.y],
+      [0, 0, 1, p.z],
+      [0, 0, 0, 1],
+  ])
+
 # scaling (will move the object)
 
 
@@ -43,6 +52,15 @@ def scaling_matrix(Sx: Number, Sy: Number) -> np.ndarray:
       [Sx, 0, 0],
       [0, Sy, 0],
       [0, 0, 1]
+  ])
+
+
+def scaling_matrix_3d(Sx: Number, Sy: Number, Sz: Number) -> np.ndarray:
+  return np.array([
+      [Sx, 0, 0, 0],
+      [0, Sy, 0, 0],
+      [0, 0, Sz, 0],
+      [0, 0, 0, 1],
   ])
 
 # angle in degrees (CLOCKWISE rotation)
@@ -56,6 +74,42 @@ def rotation_matrix(angle: Number) -> np.ndarray:
       [cos, -sin, 0],
       [sin, cos, 0],
       [0, 0, 1]
+  ])
+
+
+def rotation_matrix_3d_y(angle: Number) -> np.ndarray:
+  rad = math.pi / 180 * angle
+  cos = math.cos(rad)
+  sin = math.sin(rad)
+  return np.array([
+      [cos, 0, -sin, 0],
+      [0, 1, 0, 0],
+      [sin, 0, cos, 0],
+      [0, 0, 0, 1]
+  ])
+
+
+def rotation_matrix_3d_x(angle: Number) -> np.ndarray:
+  rad = math.pi / 180 * angle
+  cos = math.cos(rad)
+  sin = math.sin(rad)
+  return np.array([
+      [1, 0, 0, 0],
+      [0, cos, sin, 0],
+      [0, -sin, cos, 0],
+      [0, 0, 0, 1]
+  ])
+
+
+def rotation_matrix_3d_z(angle: Number) -> np.ndarray:
+  rad = math.pi / 180 * angle
+  cos = math.cos(rad)
+  sin = math.sin(rad)
+  return np.array([
+      [cos, sin, 0, 0],
+      [-sin, cos, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
   ])
 
 # scaling (will stretch the object)

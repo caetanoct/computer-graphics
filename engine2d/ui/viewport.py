@@ -34,10 +34,10 @@ class Viewport(Box):
 
 def window_to_viewport(point: Point, w: Window, vp: Viewport) -> Point:
   scale_x = vp.width() / w.width()
-  new_x = vp.x_min + (point.x - w.x_min) * scale_x
+  new_x = vp.x_min + (point.x - w.u_min) * scale_x
 
   scale_y = vp.height() / w.height()
-  new_y = vp.y_min + (w.height() - (point.y - w.y_min)) * scale_y
+  new_y = vp.y_min + (w.height() - (point.y - w.v_min)) * scale_y
 
   return Point(x=new_x, y=new_y)
 
@@ -257,6 +257,21 @@ class Ui_MainWindow(QMainWindow):
     self.actionAround_the_world.triggered.connect(
         self.action_rotate_obj_around_world)
 
+    self.actionAround_the_world_y = QtWidgets.QAction(MainWindow)
+    self.actionAround_the_world_y.setObjectName("actionAround_the_world_y")
+    self.actionAround_the_world_y.triggered.connect(
+        self.build_rotation_action(transformations.rotation_matrix_3d_y))
+
+    self.actionAround_the_world_x = QtWidgets.QAction(MainWindow)
+    self.actionAround_the_world_x.setObjectName("actionAround_the_world_x")
+    self.actionAround_the_world_x.triggered.connect(
+        self.build_rotation_action(transformations.rotation_matrix_3d_x))
+
+    self.actionAround_the_world_z = QtWidgets.QAction(MainWindow)
+    self.actionAround_the_world_z.setObjectName("actionAround_the_world_z")
+    self.actionAround_the_world_z.triggered.connect(
+        self.build_rotation_action(transformations.rotation_matrix_3d_z))
+
     self.actionAround_a_point = QtWidgets.QAction(MainWindow)
     self.actionAround_a_point.setObjectName("actionAround_a_point")
     self.actionAround_a_point.triggered.connect(
@@ -276,6 +291,9 @@ class Ui_MainWindow(QMainWindow):
 
     self.menuRotation.addAction(self.actionAround_the_object)
     self.menuRotation.addAction(self.actionAround_the_world)
+    self.menuRotation.addAction(self.actionAround_the_world_y)
+    self.menuRotation.addAction(self.actionAround_the_world_x)
+    self.menuRotation.addAction(self.actionAround_the_world_z)
     self.menuRotation.addAction(self.actionAround_a_point)
     self.menuRotation.addAction(self.actionRotate_window)
     self.menuTransform.addAction(self.actionTranslation)
@@ -321,6 +339,12 @@ class Ui_MainWindow(QMainWindow):
         _translate("MainWindow", "Relative to the object"))
     self.actionAround_the_world.setText(
         _translate("MainWindow", "Relative to the world"))
+    self.actionAround_the_world_y.setText(
+        _translate("MainWindow", "Relative to the world (y)"))
+    self.actionAround_the_world_x.setText(
+        _translate("MainWindow", "Relative to the world (x)"))
+    self.actionAround_the_world_z.setText(
+        _translate("MainWindow", "Relative to the world (z)"))
     self.actionAround_a_point.setText(
         _translate("MainWindow", "Relative to a point"))
     self.actionRotate_window.setText(
@@ -444,8 +468,9 @@ class Ui_MainWindow(QMainWindow):
   # get user input (point list) and draw a curve in the viewport
   def action_draw_curve(self):
     self.log("Draw Curve Trigerred, drawing curve after user input.")
-    opt,_ = QInputDialog.getInt(self, "0 = Bezier || 1 = B-splines","Curve type (0 or 1):")
-    print(opt)    
+    opt, _ = QInputDialog.getInt(
+        self, "0 = Bezier || 1 = B-splines", "Curve type (0 or 1):")
+    print(opt)
     button = self.sender()
     value, _ = QInputDialog.getInt(
         self, "How many points?", "amount:", 0, -2147483647, 2147483647, 1)
@@ -465,11 +490,11 @@ class Ui_MainWindow(QMainWindow):
       points.append(Point(x1, y1))
     print("creating curve")
     if opt == 1:
-        curve = B_SplineCurve(points)
+      curve = B_SplineCurve(points)
     elif opt == 0:
-        curve = BezierCurve(points)
+      curve = BezierCurve(points)
     else:
-        print("invalid number")
+      print("invalid number")
     self.create_object(curve)
 
   # changes amount of pixels that will move on the interactive menu
@@ -548,6 +573,17 @@ class Ui_MainWindow(QMainWindow):
       angle, _ = QInputDialog.getInt(
           self, "Integer input dialog", "enter angle (in degrees):")
       self.apply_transformation(index, transformations.rotation_matrix(angle))
+
+  def build_rotation_action(self, matrix_builder):
+    def rotate():
+      index = self.obj_list_combo_box.currentIndex()
+      if (index == -1):
+        self.log("ERROR: There are no objects in object list")
+      else:
+        angle, _ = QInputDialog.getInt(
+            self, "Integer input dialog", "enter angle (in degrees):")
+        self.apply_transformation(index, matrix_builder(angle))
+    return rotate
   # handles rotation around an arbitrary point action
 
   def action_rotate_obj_around_point(self):

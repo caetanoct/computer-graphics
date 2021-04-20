@@ -13,9 +13,13 @@ def rotate(l, n):
 class Point(numpy.ndarray):
   x: float
   y: float
+  z: float
 
-  def __new__(cls, x, y):
-    return numpy.asarray([x, y]).view(cls)
+  def __new__(cls, x, y, z=None):
+    if z == None:
+      return numpy.asarray([x, y]).view(cls)
+    else:
+      return numpy.asarray([x, y, z]).view(cls)
 
   @property
   def x(self):
@@ -24,16 +28,28 @@ class Point(numpy.ndarray):
   @property
   def y(self):
     return self[1]
-  # general transforming function, we can use this to any kind of transformation given the right matrix
 
+  @property
+  def z(self):
+    return self[2]
+
+  @property
+  def dimension(self):
+    return len(self)
+
+  # general transforming function, we can use this to any kind of transformation given the right matrix
   def transform(self, matrix: numpy.matrix):
-    if len(matrix) > 3:
+    if len(matrix) > (self.dimension + 1):
       raise "ERROR: given matrix has more than 3 lines"
-    if len(matrix[0]) > 3:
+    if len(matrix[0]) > (self.dimension + 1):
       raise "ERROR: given matrix has more than 3 columns"
-    vec = numpy.array([self.x, self.y, 1])
-    res = matrix.dot(vec)
-    return Point(res[0], res[1])
+
+    if self.dimension == 2:
+      res = matrix.dot(numpy.array([self.x, self.y, 1]))
+      return Point(res[0], res[1])
+    else:
+      res = matrix.dot(numpy.array([self.x, self.y, self.z, 1]))
+      return Point(res[0], res[1], res[2])
 
   def center(self):
     return self
@@ -42,7 +58,10 @@ class Point(numpy.ndarray):
     return numpy.array_equal(self, other)
 
   def __str__(self):
-    return "({}, {})".format(self.x, self.y)
+    if self.dimension == 2:
+      return "({}, {})".format(self.x, self.y)
+    else:
+      return "({}, {}, {})".format(self.x, self.y, self.z)
 
   def __repr__(self):
     return str(self)
@@ -74,19 +93,28 @@ def lines_obj_string(points):
 
 class Polygon:
   points: List[Point]
+  dimension: int = 2
 
   def __init__(self, *points):
     self.points = points
+    self._edges = None
+    if len(points) > 0:
+      self.dimension = points[0].dimension
 
   # applies a matrix to the points of the polygon and returns a new Polygon
+
   def transform(self, matrix: numpy.matrix):
     return self.__class__(
         *[point.transform(matrix) for point in self.points])
 
   def center(self):
     n = len(self.points)
+    dim = self.points[0].dimension
     center_x = sum([point.x for point in self.points]) / n
     center_y = sum([point.y for point in self.points]) / n
+    if dim == 3:
+      center_z = sum([point.z for point in self.points]) / n
+      return Point(center_x, center_y, center_z)
     return Point(center_x, center_y)
 
   # returns a list of the edges that the polygon consists of
@@ -105,6 +133,54 @@ class Polygon:
 
   def obj_string(self):
     return lines_obj_string(self.points)
+
+
+class Wireframe(Polygon):
+  points: List[Point]
+  edges: List[Line]
+  dimension = 3
+
+  def __init__(self, points, edges):
+    self.points = points
+    self.edges_indices = edges
+    self.dimension = 3
+    super().__init__(*points)
+
+  def transform(self, matrix: numpy.matrix):
+    return Wireframe([point.transform(matrix) for point in self.points], self.edges_indices)
+
+  @property
+  def edges(self):
+    return [Line(self.points[a], self.points[b]) for a, b in self.edges_indices]
+
+  @staticmethod
+  def build_cube(center: Point, size: float):
+    s = size / 2
+    points = [
+        Point(x, y, z)
+        for x in [-s, s]
+        for y in [-s, s]
+        for z in [-s, s]
+    ]
+    a, b, c, d, e, f, g, h = points
+    edges = [
+        (0, 1),
+        (0, 2),
+        (0, 4),
+
+        (3, 2),
+        (3, 1),
+        (3, 7),
+
+        (5, 1),
+        (5, 7),
+        (5, 4),
+
+        (6, 7),
+        (6, 4),
+        (6, 2),
+    ]
+    return Wireframe(points, edges)
 
 
 class InfiniteLine:
